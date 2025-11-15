@@ -1,9 +1,11 @@
 import { Briefcase } from "lucide-react";
 import Link from "next/link";
-import { Button } from "../ui/button";
+import { Button, buttonVariants } from "../ui/button";
 import { ThemeToggle } from "./ThemeToggle";
+import { auth, signOut } from "@/app/utils/auth";
 
-const Navbar = () => {
+const Navbar = async () => {
+  const session = await auth();
   return (
     <nav className="flex justify-between items-center py-5">
       <Link href={"/"}>
@@ -14,7 +16,23 @@ const Navbar = () => {
       </Link>
       <div className="flex  gap-4">
         <ThemeToggle />
-        <Button>Login</Button>
+        {session?.user ? (
+          <form
+            action={async () => {
+              "use server";
+              await signOut({ redirectTo: "/" });
+            }}
+          >
+            <Button>Logout</Button>
+          </form>
+        ) : (
+          <Link
+            className={buttonVariants({ variant: "outline", size: "lg" })}
+            href={"/login"}
+          >
+            Login
+          </Link>
+        )}
       </div>
     </nav>
   );
