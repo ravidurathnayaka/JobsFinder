@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Briefcase } from "lucide-react";
 import { useState } from "react";
 import UserTypeSelection from "./UserTypeSelection";
+import CompanyForm from "./CompanyForm";
 
 type UserType = "company" | "jobSeeker" | null;
 
@@ -21,9 +22,11 @@ export default function OnboardingForm() {
       case 1:
         return <UserTypeSelection onSelect={handleUserTypeSelect} />;
       case 2:
-        return userType === "company"
-          ? "User is an company"
-          : "User is a job seeker";
+        return userType === "company" ? (
+          <CompanyForm />
+        ) : (
+          "User is a job seeker"
+        );
       default:
         return null;
     }
