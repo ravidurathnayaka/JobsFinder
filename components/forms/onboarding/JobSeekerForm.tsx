@@ -18,8 +18,6 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { XIcon } from "lucide-react";
-
-import PDFImage from "@/public/pdf.png";
 import Image from "next/image";
 import { UploadDropzone } from "@/components/general/UploadThingReExport";
 import { createJobSeeker } from "@/app/actions";
@@ -40,7 +38,7 @@ export default function JobSeekerForm() {
       await createJobSeeker(values);
     } catch (error) {
       if (error instanceof Error && error.message !== "NEXT_REDIRECT") {
-        toast.error("Something went wrong. Please try again.");
+        console.log("Something went wrong. Please try again.");
       }
     } finally {
       setPending(false);
@@ -93,11 +91,11 @@ export default function JobSeekerForm() {
                   {field.value ? (
                     <div className="relative w-fit">
                       <Image
-                        src={PDFImage}
                         alt="Company Logo"
                         width={100}
                         height={100}
                         className="rounded-lg"
+                        src={"/jobseeker_pdf.png"}
                       />
                       <Button
                         type="button"

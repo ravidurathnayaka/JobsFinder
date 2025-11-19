@@ -5,6 +5,7 @@ import { Briefcase } from "lucide-react";
 import { useState } from "react";
 import UserTypeSelection from "./UserTypeSelection";
 import CompanyForm from "./CompanyForm";
+import JobSeekerForm from "./JobSeekerForm";
 
 type UserType = "company" | "jobSeeker" | null;
 
@@ -22,11 +23,7 @@ export default function OnboardingForm() {
       case 1:
         return <UserTypeSelection onSelect={handleUserTypeSelect} />;
       case 2:
-        return userType === "company" ? (
-          <CompanyForm />
-        ) : (
-          "User is a job seeker"
-        );
+        return userType === "company" ? <CompanyForm /> : <JobSeekerForm />;
       default:
         return null;
     }
