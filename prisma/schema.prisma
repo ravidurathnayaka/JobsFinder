@@ -13,6 +13,12 @@ enum UserType {
   JOB_SEEKER
 }
 
+enum JobPostStatus {
+  DRAFT
+  ACTIVE
+  EXPIRED
+}
+
 model User {
   id                  String          @id @default(cuid())
   name                String?
@@ -58,6 +64,45 @@ model JobSeeker {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model JobPost {
+  id String @id @default(uuid())
+
+  jobTitle        String
+  employmentType  String
+  location        String
+  salaryFrom      Int
+  salaryTo        Int
+  jobDescription  String
+  listingDuration Int
+  benefits        String[]
+
+  status       JobPostStatus @default(DRAFT)
+  applications Int           @default(0)
+
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId String
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  SavedJobPost SavedJobPost[]
+}
+
+model SavedJobPost {
+  id     String @id @default(uuid())
+  jobId  String
+  userId String
+
+  job  JobPost @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, jobId])
+}
+
+
  
 model Account {
   userId            String
