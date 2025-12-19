@@ -10,8 +10,8 @@ import ArcJetLogo from "@/public/arcjet.jpg";
 import InngestLogo from "@/public/inngest-locale.png";
 import CreateJobForm from "@/components/forms/CreateJobForm";
 import { redirect } from "next/navigation";
-import { prisma } from "@/app/utils/db";
 import { requireUser } from "@/app/utils/requireUser";
+import prisma from "@/app/utils/db";
 
 const companies = [
   { id: 0, name: "ArcJet", logo: ArcJetLogo },

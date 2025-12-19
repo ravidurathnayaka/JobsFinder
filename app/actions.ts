@@ -3,10 +3,10 @@
 import z from "zod";
 import { requireUser } from "./utils/requireUser";
 import { companySchema, jobSchema, jobSeekerSchema } from "./utils/zodSchemas";
-import { prisma } from "./utils/db";
 import { redirect } from "next/navigation";
 import arcjet, { detectBot, shield } from "@/components/ui/arcjet";
 import { request } from "@arcjet/next";
+import prisma from "./utils/db";
 
 const aj = arcjet
   .withRule(
