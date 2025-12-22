@@ -9,6 +9,7 @@ import { request } from "@arcjet/next";
 import prisma from "./utils/db";
 import { stripe } from "./utils/stripe";
 import { jobListingDurationPricing } from "./utils/pricingTiers";
+import { inngest } from "./utils/inngest/client";
 
 const aj = arcjet
   .withRule(
@@ -160,6 +161,15 @@ export async function createJob(data: z.infer<typeof jobSchema>) {
   if (!pricingTier) {
     throw new Error("Invalid listing duration selected");
   }
+
+  // Trigger the job expiration function
+  await inngest.send({
+    name: "job/created",
+    data: {
+      jobId: jobPost.id,
+      expirationDays: validatedData.listingDuration,
+    },
+  });
 
   const session = await stripe.checkout.sessions.create({
     customer: striptCustomerId,
