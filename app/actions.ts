@@ -163,13 +163,13 @@ export async function createJob(data: z.infer<typeof jobSchema>) {
   }
 
   // Trigger the job expiration function
-  await inngest.send({
-    name: "job/created",
-    data: {
-      jobId: jobPost.id,
-      expirationDays: validatedData.listingDuration,
-    },
-  });
+  // await inngest.send({
+  //   name: "job/created",
+  //   data: {
+  //     jobId: jobPost.id,
+  //     expirationDays: validatedData.listingDuration,
+  //   },
+  // });
 
   const session = await stripe.checkout.sessions.create({
     customer: striptCustomerId,
