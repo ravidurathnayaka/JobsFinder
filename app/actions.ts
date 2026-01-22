@@ -181,7 +181,7 @@ export async function createJob(data: z.infer<typeof jobSchema>) {
             name: `Job Posting - ${pricingTier.days} Days`,
             description: pricingTier.description,
             images: [
-              "https://jmyeuvh18b.ufs.sh/f/sCte0LaH65ao4rs3CnEqFwVh76r25mCupPyNKXWETdfbLBi9",
+              "https://jmyeuvh18b.ufs.sh/f/sCte0LaH65aoE5wnysUyzgkseRtY0cKPUF4xrWHhqCZ9QIAw",
             ],
           },
           currency: "USD",
