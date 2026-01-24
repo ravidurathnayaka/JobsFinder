@@ -56,9 +56,13 @@ interface iAppProps {
       about: string;
     };
   };
+  updateAction?: (
+    values: z.infer<typeof jobSchema>,
+    jobId: string
+  ) => Promise<void>;
 }
 
-export function EditJobForm({ jobPost }: iAppProps) {
+export function EditJobForm({ jobPost, updateAction }: iAppProps) {
   const form = useForm<z.infer<typeof jobSchema>>({
     resolver: zodResolver(jobSchema),
     defaultValues: {
@@ -84,7 +88,11 @@ export function EditJobForm({ jobPost }: iAppProps) {
     try {
       setPending(true);
 
-      await updateJobPost(values, jobPost.id);
+      if (updateAction) {
+        await updateAction(values, jobPost.id);
+      } else {
+        await updateJobPost(values, jobPost.id);
+      }
     } catch (error) {
       if (error instanceof Error && error.message !== "NEXT_REDIRECT") {
         toast.error("Something went wrong. Please try again.");
