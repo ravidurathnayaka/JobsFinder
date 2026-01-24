@@ -25,7 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, PenBoxIcon, User2, XCircle } from "lucide-react";
+import { Briefcase, MoreHorizontal, PenBoxIcon, User2, XCircle } from "lucide-react";
 import Link from "next/link";
 
 import { EmptyState } from "@/components/general/EmptyState";
@@ -142,6 +142,12 @@ const MyJobs = async () => {
                             <Link href={`/my-jobs/${listing.id}/edit`}>
                               <PenBoxIcon className="size-4" />
                               Edit Job
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/my-jobs/${listing.id}/applications`}>
+                              <Briefcase className="size-4" />
+                              Applications
                             </Link>
                           </DropdownMenuItem>
                           <CopyLinkMenuItem

@@ -1,6 +1,7 @@
 generator client {
   provider = "prisma-client"
   output   = "../lib/generated/prisma"
+  engineType = "binary"
 }
 
 datasource db {
@@ -69,6 +70,7 @@ model User {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
   SavedJobPost SavedJobPost[]
+  Application Application[]
 }
 
 model Company {
@@ -113,6 +115,22 @@ model JobPost {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   SavedJobPost SavedJobPost[]
+  Application Application[]
+}
+
+model Application {
+  id          String   @id @default(uuid())
+  name        String
+  email       String
+  resume      String
+  coverLetter String?
+  job         JobPost  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  jobId       String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@unique([userId, jobId])
 }
 
 model SavedJobPost {

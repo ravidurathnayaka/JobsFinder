@@ -49,6 +49,7 @@ async function getJob(jobId: string, userId?: string, allowAllStatuses?: boolean
 
         createdAt: true,
         listingDuration: true,
+        companyId: true,
         company: {
           select: {
             name: true,
@@ -197,10 +198,9 @@ const JobIdPage = async ({ params }: { params: Params }) => {
                   JobsFinder. This helps us grow!
                 </p>
               </div>
-              <form>
-                <input type="hidden" name="jobId" value={jobId} />
-                <GeneralSubmitButton text="Apply now" />
-              </form>
+              <Button asChild className="w-full">
+                <Link href={`/job/${jobId}/apply`}>Apply now</Link>
+              </Button>
             </div>
           </Card>
 
@@ -274,8 +274,10 @@ const JobIdPage = async ({ params }: { params: Params }) => {
                   </p>
                 </div>
               </div>
-              <Button variant="outline" className="w-full">
-                View company profile
+              <Button variant="outline" className="w-full" asChild>
+                <Link href={`/company/${jobData.companyId}`}>
+                  View company profile
+                </Link>
               </Button>
             </div>
           </Card>

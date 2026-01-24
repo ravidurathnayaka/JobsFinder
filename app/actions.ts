@@ -2,7 +2,12 @@
 
 import z from "zod";
 import { requireUser } from "./utils/requireUser";
-import { companySchema, jobSchema, jobSeekerSchema } from "./utils/zodSchemas";
+import {
+  applicationSchema,
+  companySchema,
+  jobSchema,
+  jobSeekerSchema,
+} from "./utils/zodSchemas";
 import { redirect } from "next/navigation";
 import arcjet, { detectBot, shield } from "@/components/ui/arcjet";
 import { request } from "@arcjet/next";
@@ -439,5 +444,26 @@ export async function updateJobSeeker(data: z.infer<typeof jobSeekerSchema>) {
   });
 
   revalidatePath("/account/jobseeker");
+}
+
+export async function applyToJob(
+  jobId: string,
+  data: z.infer<typeof applicationSchema>
+) {
+  const user = await requireUser();
+  const validatedData = applicationSchema.parse(data);
+
+  await prisma.application.create({
+    data: {
+      jobId,
+      userId: user.id,
+      name: validatedData.name,
+      email: validatedData.email,
+      resume: validatedData.resume,
+      coverLetter: validatedData.coverLetter,
+    },
+  });
+
+  revalidatePath(`/job/${jobId}`);
 }
 

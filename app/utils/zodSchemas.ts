@@ -33,3 +33,10 @@ export const jobSchema = z.object({
   companyWebsite: z.string().min(1, "Company website is required"),
   companyXAccount: z.string().optional(),
 });
+
+export const applicationSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  resume: z.string().min(1, "Please upload a resume"),
+  coverLetter: z.string().optional(),
+});
