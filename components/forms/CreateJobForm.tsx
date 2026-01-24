@@ -35,6 +35,7 @@ import { XIcon } from "lucide-react";
 import { JobListingDurationSelector } from "../general/JobListingDurationSelector";
 import { useState } from "react";
 import { createJob } from "@/app/actions";
+import { toast } from "sonner";
 
 interface CreateJobFormProps {
   companyName: string;
@@ -83,7 +84,7 @@ const CreateJobForm = ({
     } catch (error) {
       console.log(error);
       if (error instanceof Error && error.message !== "NEXT_REDIRECT") {
-        console.log("Something went wrong. Please try again.");
+        toast.error("Something went wrong. Please try again.");
       }
     } finally {
       setPending(false);
