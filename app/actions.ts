@@ -9,8 +9,9 @@ import { request } from "@arcjet/next";
 import prisma from "./utils/db";
 import { stripe } from "./utils/stripe";
 import { jobListingDurationPricing } from "./utils/pricingTiers";
-import { inngest } from "./utils/inngest/client";
 import { revalidatePath } from "next/cache";
+import { isAdmin } from "./utils/isAdmin";
+import { JobPostStatus } from "@/lib/generated/prisma/client";
 
 const aj = arcjet
   .withRule(
@@ -163,15 +164,6 @@ export async function createJob(data: z.infer<typeof jobSchema>) {
     throw new Error("Invalid listing duration selected");
   }
 
-  // Trigger the job expiration function
-  // await inngest.send({
-  //   name: "job/created",
-  //   data: {
-  //     jobId: jobPost.id,
-  //     expirationDays: validatedData.listingDuration,
-  //   },
-  // });
-
   const session = await stripe.checkout.sessions.create({
     customer: striptCustomerId,
     line_items: [
@@ -274,3 +266,90 @@ export async function unsaveJobPost(savedJobPostId: string) {
 
   revalidatePath(`/job/${data.jobId}`);
 }
+
+export async function adminApproveJob(jobId: string) {
+  const user = await requireUser();
+
+  if (!isAdmin(user.email)) {
+    throw new Error("Forbidden");
+  }
+
+  await prisma.jobPost.update({
+    where: {
+      id: jobId,
+    },
+    data: {
+      status: JobPostStatus.ACTIVE,
+    },
+  });
+
+  revalidatePath("/admin/jobs");
+}
+
+export async function adminRejectJob(jobId: string) {
+  const user = await requireUser();
+
+  if (!isAdmin(user.email)) {
+    throw new Error("Forbidden");
+  }
+
+  await prisma.jobPost.update({
+    where: {
+      id: jobId,
+    },
+    data: {
+      status: JobPostStatus.REJECTED,
+    },
+  });
+
+  revalidatePath("/admin/jobs");
+}
+
+export async function adminUpdateJobPost(
+  data: z.infer<typeof jobSchema>,
+  jobId: string
+) {
+  const user = await requireUser();
+
+  if (!isAdmin(user.email)) {
+    throw new Error("Forbidden");
+  }
+
+  const validatedData = jobSchema.parse(data);
+
+  await prisma.jobPost.update({
+    where: {
+      id: jobId,
+    },
+    data: {
+      jobDescription: validatedData.jobDescription,
+      jobTitle: validatedData.jobTitle,
+      employmentType: validatedData.employmentType,
+      location: validatedData.location,
+      salaryFrom: validatedData.salaryFrom,
+      salaryTo: validatedData.salaryTo,
+      listingDuration: validatedData.listingDuration,
+      benefits: validatedData.benefits,
+    },
+  });
+
+  revalidatePath(`/admin/jobs/${jobId}`);
+  revalidatePath("/admin/jobs");
+}
+
+export async function adminDeleteJobPost(jobId: string) {
+  const user = await requireUser();
+
+  if (!isAdmin(user.email)) {
+    throw new Error("Forbidden");
+  }
+
+  await prisma.jobPost.delete({
+    where: {
+      id: jobId,
+    },
+  });
+
+  revalidatePath("/admin/jobs");
+}
+

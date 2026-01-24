@@ -16,6 +16,7 @@ enum JobPostStatus {
   DRAFT
   ACTIVE
   EXPIRED
+  REJECTED
 }
 
 model Account {

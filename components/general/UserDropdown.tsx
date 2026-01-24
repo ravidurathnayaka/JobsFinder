@@ -11,16 +11,34 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { ChevronDown, Heart, Layers2, LogOut } from "lucide-react";
+import {
+  Building2,
+  ChevronDown,
+  Heart,
+  Layers2,
+  LogOut,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
 import Link from "next/link";
+
+type UserType = "COMPANY" | "JOB_SEEKER" | null | undefined;
 
 interface iAppProps {
   email: string;
   name: string;
   image: string;
+  isAdmin?: boolean;
+  userType?: UserType;
 }
 
-export function UserDropdown({ email, name, image }: iAppProps) {
+export function UserDropdown({
+  email,
+  name,
+  image,
+  isAdmin,
+  userType,
+}: iAppProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -48,6 +66,45 @@ export function UserDropdown({ email, name, image }: iAppProps) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
+          {isAdmin ? (
+            <DropdownMenuItem asChild>
+              <Link href="/admin/jobs">
+                <ShieldCheck
+                  size={16}
+                  strokeWidth={2}
+                  className="opacity-60"
+                  aria-hidden="true"
+                />
+                <span>Admin Jobs</span>
+              </Link>
+            </DropdownMenuItem>
+          ) : null}
+          {userType === "COMPANY" ? (
+            <DropdownMenuItem asChild>
+              <Link href="/account/company">
+                <Building2
+                  size={16}
+                  strokeWidth={2}
+                  className="opacity-60"
+                  aria-hidden="true"
+                />
+                <span>Company Profile</span>
+              </Link>
+            </DropdownMenuItem>
+          ) : null}
+          {userType === "JOB_SEEKER" ? (
+            <DropdownMenuItem asChild>
+              <Link href="/account/jobseeker">
+                <UserRound
+                  size={16}
+                  strokeWidth={2}
+                  className="opacity-60"
+                  aria-hidden="true"
+                />
+                <span>Job Seeker Profile</span>
+              </Link>
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuItem asChild>
             <Link href="/favorites">
               <Heart

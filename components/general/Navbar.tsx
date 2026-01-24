@@ -2,11 +2,20 @@ import { Briefcase } from "lucide-react";
 import Link from "next/link";
 import { Button, buttonVariants } from "../ui/button";
 import { ThemeToggle } from "./ThemeToggle";
-import { auth, signOut } from "@/app/utils/auth";
+import { auth } from "@/app/utils/auth";
 import { UserDropdown } from "./UserDropdown";
+import { isAdmin } from "@/app/utils/isAdmin";
+import prisma from "@/app/utils/db";
 
 const Navbar = async () => {
   const session = await auth();
+  const userData = session?.user?.id
+    ? await prisma.user.findUnique({
+        where: { id: session.user.id as string },
+        select: { userType: true },
+      })
+    : null;
+
   return (
     <nav className="flex justify-between items-center py-5">
       <Link href={"/"}>
@@ -27,6 +36,8 @@ const Navbar = async () => {
             email={session.user.email as string}
             name={session.user.name as string}
             image={session.user.image as string}
+            isAdmin={isAdmin(session.user.email)}
+            userType={userData?.userType}
           />
         ) : (
           <Link
