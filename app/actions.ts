@@ -353,3 +353,35 @@ export async function adminDeleteJobPost(jobId: string) {
   revalidatePath("/admin/jobs");
 }
 
+export async function updateCompany(data: z.infer<typeof companySchema>) {
+  const user = await requireUser();
+  const validatedData = companySchema.parse(data);
+
+  await prisma.company.update({
+    where: {
+      userId: user.id,
+    },
+    data: {
+      ...validatedData,
+    },
+  });
+
+  revalidatePath("/account/company");
+}
+
+export async function updateJobSeeker(data: z.infer<typeof jobSeekerSchema>) {
+  const user = await requireUser();
+  const validatedData = jobSeekerSchema.parse(data);
+
+  await prisma.jobSeeker.update({
+    where: {
+      userId: user.id,
+    },
+    data: {
+      ...validatedData,
+    },
+  });
+
+  revalidatePath("/account/jobseeker");
+}
+

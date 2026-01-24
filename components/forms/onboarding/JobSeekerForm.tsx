@@ -22,23 +22,42 @@ import Image from "next/image";
 import { UploadDropzone } from "@/components/general/UploadThingReExport";
 import { createJobSeeker } from "@/app/actions";
 
-export default function JobSeekerForm() {
+interface JobSeekerFormProps {
+  initialValues?: z.infer<typeof jobSeekerSchema>;
+  submitAction?: (values: z.infer<typeof jobSeekerSchema>) => Promise<void>;
+  submitLabel?: string;
+  successMessage?: string;
+}
+
+export default function JobSeekerForm({
+  initialValues,
+  submitAction,
+  submitLabel = "Continue",
+  successMessage,
+}: JobSeekerFormProps) {
   const form = useForm<z.infer<typeof jobSeekerSchema>>({
     resolver: zodResolver(jobSeekerSchema),
     defaultValues: {
-      about: "",
-      resume: "",
-      name: "",
+      about: initialValues?.about ?? "",
+      resume: initialValues?.resume ?? "",
+      name: initialValues?.name ?? "",
     },
   });
   const [pending, setPending] = useState(false);
   async function onSubmit(values: z.infer<typeof jobSeekerSchema>) {
     try {
       setPending(true);
-      await createJobSeeker(values);
+      if (submitAction) {
+        await submitAction(values);
+        if (successMessage) {
+          toast.success(successMessage);
+        }
+      } else {
+        await createJobSeeker(values);
+      }
     } catch (error) {
       if (error instanceof Error && error.message !== "NEXT_REDIRECT") {
-        console.log("Something went wrong. Please try again.");
+        toast.error("Something went wrong. Please try again.");
       }
     } finally {
       setPending(false);
@@ -128,7 +147,7 @@ export default function JobSeekerForm() {
         />
 
         <Button type="submit" className="w-full" disabled={pending}>
-          {pending ? "Submitting..." : "Continue"}
+          {pending ? "Submitting..." : submitLabel}
         </Button>
       </form>
     </Form>

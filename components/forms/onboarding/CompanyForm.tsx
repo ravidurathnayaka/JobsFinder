@@ -32,16 +32,28 @@ import Image from "next/image";
 import { XIcon } from "lucide-react";
 import { toast } from "sonner";
 
-export default function CompanyForm() {
+interface CompanyFormProps {
+  initialValues?: z.infer<typeof companySchema>;
+  submitAction?: (values: z.infer<typeof companySchema>) => Promise<void>;
+  submitLabel?: string;
+  successMessage?: string;
+}
+
+export default function CompanyForm({
+  initialValues,
+  submitAction,
+  submitLabel = "Continue",
+  successMessage,
+}: CompanyFormProps) {
   const form = useForm<z.infer<typeof companySchema>>({
     resolver: zodResolver(companySchema),
     defaultValues: {
-      about: "",
-      location: "",
-      website: "",
-      xAccount: "",
-      logo: "",
-      name: "",
+      about: initialValues?.about ?? "",
+      location: initialValues?.location ?? "",
+      website: initialValues?.website ?? "",
+      xAccount: initialValues?.xAccount ?? "",
+      logo: initialValues?.logo ?? "",
+      name: initialValues?.name ?? "",
     },
   });
 
@@ -50,11 +62,18 @@ export default function CompanyForm() {
   async function onSubmit(values: z.infer<typeof companySchema>) {
     try {
       setPending(true);
-      await createCompany(values);
+      if (submitAction) {
+        await submitAction(values);
+        if (successMessage) {
+          toast.success(successMessage);
+        }
+      } else {
+        await createCompany(values);
+      }
     } catch (error) {
       console.log(error);
       if (error instanceof Error && error.message !== "NEXT_REDIRECT") {
-        console.log("Something went wrong. Please try again.");
+        toast.error("Something went wrong. Please try again.");
       }
     } finally {
       setPending(false);
@@ -215,7 +234,7 @@ export default function CompanyForm() {
         />
 
         <Button type="submit" className="w-full" disabled={pending}>
-          {pending ? "Submitting..." : "Continue"}
+          {pending ? "Submitting..." : submitLabel}
         </Button>
       </form>
     </Form>
