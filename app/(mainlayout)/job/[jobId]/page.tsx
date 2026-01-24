@@ -11,6 +11,7 @@ import { Heart } from "lucide-react";
 
 import Link from "next/link";
 import { auth } from "@/app/utils/auth";
+import { isAdmin } from "@/app/utils/isAdmin";
 import {
   GeneralSubmitButton,
   SaveJobButton,
@@ -30,12 +31,12 @@ const aj = arcjet.withRule(
   })
 );
 
-async function getJob(jobId: string, userId?: string) {
+async function getJob(jobId: string, userId?: string, allowAllStatuses?: boolean) {
   const [jobData, savedJob] = await Promise.all([
-    prisma.jobPost.findUnique({
+    prisma.jobPost.findFirst({
       where: {
         id: jobId,
-        status: "ACTIVE",
+        ...(allowAllStatuses ? {} : { status: "ACTIVE" }),
       },
       select: {
         jobTitle: true,
@@ -96,7 +97,12 @@ const JobIdPage = async ({ params }: { params: Params }) => {
   }
 
   const session = await auth();
-  const { jobData, savedJob } = await getJob(jobId, session?.user?.id);
+  const allowAllStatuses = isAdmin(session?.user?.email);
+  const { jobData, savedJob } = await getJob(
+    jobId,
+    session?.user?.id,
+    allowAllStatuses
+  );
   const locationFlag = getFlagEmoji(jobData.location);
 
   return (
