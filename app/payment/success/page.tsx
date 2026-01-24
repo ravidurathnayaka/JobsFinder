@@ -1,9 +1,33 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Check } from "lucide-react";
 import Link from "next/link";
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 export default function PaymentSucess() {
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get("session_id");
+
+  useEffect(() => {
+    if (!sessionId) {
+      return;
+    }
+
+    const controller = new AbortController();
+
+    fetch(`/api/stripe/activate?session_id=${encodeURIComponent(sessionId)}`, {
+      method: "POST",
+      signal: controller.signal,
+    }).catch((error) => {
+      console.error("Failed to activate job from session", error);
+    });
+
+    return () => controller.abort();
+  }, [sessionId]);
+
   return (
     <div className="w-full h-screen flex flex-1 justify-center items-center">
       <Card className="w-[350px]">
