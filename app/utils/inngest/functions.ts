@@ -1,9 +1,6 @@
-import { Slice } from "lucide-react";
 import prisma from "../db";
 import { inngest } from "./client";
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendEmail } from "../email";
 
 export const handleJobExpiration = inngest.createFunction(
   { id: "job-expiration" },
@@ -11,15 +8,77 @@ export const handleJobExpiration = inngest.createFunction(
   async ({ event, step }) => {
     const { jobId, expirationDays } = event.data;
 
-    // Wait for the specified duration
-    await step.sleep("wait-for-expiration", `${expirationDays}d`);
+    if (expirationDays > 3) {
+      await step.sleep("wait-for-expiring-soon", `${expirationDays - 3}d`);
 
-    // Update job status to expired
+      await step.run("send-expiring-soon-email", async () => {
+        const job = await prisma.jobPost.findUnique({
+          where: { id: jobId },
+          select: {
+            id: true,
+            jobTitle: true,
+            status: true,
+            company: {
+              select: {
+                user: {
+                  select: {
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        if (job?.status === "ACTIVE" && job.company.user.email) {
+          const jobUrl = `${process.env.NEXT_PUBLIC_URL}/job/${job.id}`;
+          await sendEmail({
+            to: job.company.user.email,
+            subject: "Your job post is expiring soon",
+            html: `<p>Your job post <strong>${job.jobTitle}</strong> will expire in 3 days.</p><p><a href="${jobUrl}">View job post</a></p>`,
+          });
+        }
+      });
+
+      await step.sleep("wait-for-expiration", `3d`);
+    } else {
+      await step.sleep("wait-for-expiration", `${expirationDays}d`);
+    }
+
     await step.run("update-job-status", async () => {
-      await prisma.jobPost.update({
-        where: { id: jobId },
+      const updated = await prisma.jobPost.updateMany({
+        where: { id: jobId, status: "ACTIVE" },
         data: { status: "EXPIRED" },
       });
+
+      if (updated.count === 0) {
+        return;
+      }
+
+      const job = await prisma.jobPost.findUnique({
+        where: { id: jobId },
+        select: {
+          id: true,
+          jobTitle: true,
+          company: {
+            select: {
+              user: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (job?.company.user.email) {
+        await sendEmail({
+          to: job.company.user.email,
+          subject: "Your job post has expired",
+          html: `<p>Your job post <strong>${job.jobTitle}</strong> has expired.</p>`,
+        });
+      }
     });
 
     return { jobId, message: "Job marked as expired" };
@@ -57,7 +116,7 @@ export const sendPeriodicJobListings = inngest.createFunction(
         });
       });
 
-      if (recentJobs.length > 0) {
+      if (recentJobs.length > 0 && email) {
         await step.run("send-email", async () => {
           const jobListingsHTML = recentJobs
             .map(
@@ -72,10 +131,9 @@ export const sendPeriodicJobListings = inngest.createFunction(
             )
             .join("");
 
-          await resend.emails.send({
-            from: "JobsFinder <onboarding@resend.dev>",
-            to: ["rmrhrathnayaka@gmail.com"],
-            subject: "Latest Job opportunities for you",
+          await sendEmail({
+            to: email,
+            subject: "Latest job opportunities for you",
             html: `${jobListingsHTML}`,
           });
         });
@@ -83,5 +141,27 @@ export const sendPeriodicJobListings = inngest.createFunction(
     }
 
     return { userId, message: "Completed 30 day job listing notifications" };
+  }
+);
+
+export const sendJobSeekerWelcome = inngest.createFunction(
+  { id: "jobseeker-welcome" },
+  { event: "jobseeker/created" },
+  async ({ event, step }) => {
+    const { email, name } = event.data;
+
+    if (!email) {
+      return { message: "No email available for welcome message" };
+    }
+
+    await step.run("send-welcome-email", async () => {
+      await sendEmail({
+        to: email,
+        subject: "Welcome to JobsFinder",
+        html: `<p>Hi ${name || "there"}, welcome to JobsFinder! We'll keep you updated with new job opportunities.</p>`,
+      });
+    });
+
+    return { message: "Welcome email sent" };
   }
 );

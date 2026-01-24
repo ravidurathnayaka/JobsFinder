@@ -1,6 +1,8 @@
 import prisma from "@/app/utils/db";
 import { stripe } from "@/app/utils/stripe";
 import { NextRequest, NextResponse } from "next/server";
+import { sendEmail } from "@/app/utils/email";
+import { inngest } from "@/app/utils/inngest/client";
 
 export async function POST(req: NextRequest) {
   const sessionId =
@@ -36,6 +38,46 @@ export async function POST(req: NextRequest) {
         status: "ACTIVE",
       },
     });
+
+    if (result.count > 0) {
+      const job = await prisma.jobPost.findUnique({
+        where: { id: jobId },
+        select: {
+          id: true,
+          jobTitle: true,
+          company: {
+            select: {
+              user: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
+          listingDuration: true,
+        },
+      });
+
+      const companyEmail = job?.company.user.email;
+      if (companyEmail) {
+        const jobUrl = `${process.env.NEXT_PUBLIC_URL}/job/${job.id}`;
+        await sendEmail({
+          to: companyEmail,
+          subject: "Your job post is live",
+          html: `<p>Your payment was successful and your job post <strong>${job.jobTitle}</strong> is now active.</p><p><a href="${jobUrl}">View job post</a></p>`,
+        });
+      }
+
+      if (job?.listingDuration) {
+        await inngest.send({
+          name: "job/created",
+          data: {
+            jobId,
+            expirationDays: job.listingDuration,
+          },
+        });
+      }
+    }
 
     return NextResponse.json({
       ok: true,

@@ -9,9 +9,11 @@ import { request } from "@arcjet/next";
 import prisma from "./utils/db";
 import { stripe } from "./utils/stripe";
 import { jobListingDurationPricing } from "./utils/pricingTiers";
+import { inngest } from "./utils/inngest/client";
 import { revalidatePath } from "next/cache";
 import { isAdmin } from "./utils/isAdmin";
 import { JobPostStatus } from "@/lib/generated/prisma/client";
+import { sendEmail } from "./utils/email";
 
 const aj = arcjet
   .withRule(
@@ -52,6 +54,15 @@ export async function createCompany(data: z.infer<typeof companySchema>) {
           ...validatedData,
         },
       },
+    },
+  });
+
+  await inngest.send({
+    name: "jobseeker/created",
+    data: {
+      userId: user.id,
+      email: user.email,
+      name: validatedData.name,
     },
   });
 
@@ -274,14 +285,37 @@ export async function adminApproveJob(jobId: string) {
     throw new Error("Forbidden");
   }
 
-  await prisma.jobPost.update({
+  const job = await prisma.jobPost.update({
     where: {
       id: jobId,
     },
     data: {
       status: JobPostStatus.ACTIVE,
     },
+    select: {
+      id: true,
+      jobTitle: true,
+      company: {
+        select: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      },
+    },
   });
+
+  const companyEmail = job.company.user.email;
+  if (companyEmail) {
+    const jobUrl = `${process.env.NEXT_PUBLIC_URL}/job/${job.id}`;
+    await sendEmail({
+      to: companyEmail,
+      subject: "Your job post has been approved",
+      html: `<p>Your job post <strong>${job.jobTitle}</strong> has been approved and is now live.</p><p><a href="${jobUrl}">View job post</a></p>`,
+    });
+  }
 
   revalidatePath("/admin/jobs");
 }
@@ -293,14 +327,36 @@ export async function adminRejectJob(jobId: string) {
     throw new Error("Forbidden");
   }
 
-  await prisma.jobPost.update({
+  const job = await prisma.jobPost.update({
     where: {
       id: jobId,
     },
     data: {
       status: JobPostStatus.REJECTED,
     },
+    select: {
+      id: true,
+      jobTitle: true,
+      company: {
+        select: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      },
+    },
   });
+
+  const companyEmail = job.company.user.email;
+  if (companyEmail) {
+    await sendEmail({
+      to: companyEmail,
+      subject: "Your job post was rejected",
+      html: `<p>Your job post <strong>${job.jobTitle}</strong> was rejected. Please review the content and try again.</p>`,
+    });
+  }
 
   revalidatePath("/admin/jobs");
 }
