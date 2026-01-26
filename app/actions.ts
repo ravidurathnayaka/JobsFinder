@@ -462,8 +462,5 @@ export async function applyToJob(
       resume: validatedData.resume,
       coverLetter: validatedData.coverLetter,
     },
-  });
-
-  revalidatePath(`/job/${jobId}`);
+  });  revalidatePath(`/job/${jobId}`);
 }
-

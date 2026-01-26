@@ -23,6 +23,7 @@ import { request } from "@arcjet/next";
 import { benefits } from "@/app/utils/listofBenefits";
 import { JsonToHtml } from "@/components/general/JsonToHtml";
 import arcjet, { detectBot } from "@/app/utils/arcjet";
+import type { Metadata } from "next";
 
 const aj = arcjet.withRule(
   detectBot({
@@ -46,6 +47,8 @@ async function getJob(jobId: string, userId?: string, allowAllStatuses?: boolean
 
         employmentType: true,
         benefits: true,
+        salaryFrom: true,
+        salaryTo: true,
 
         createdAt: true,
         listingDuration: true,
@@ -56,6 +59,7 @@ async function getJob(jobId: string, userId?: string, allowAllStatuses?: boolean
             logo: true,
             location: true,
             about: true,
+            website: true,
           },
         },
       },
@@ -87,6 +91,48 @@ async function getJob(jobId: string, userId?: string, allowAllStatuses?: boolean
 
 type Params = Promise<{ jobId: string }>;
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Params;
+}): Promise<Metadata> {
+  const { jobId } = await params;
+  const job = await prisma.jobPost.findFirst({
+    where: { id: jobId, status: "ACTIVE" },
+    select: {
+      jobTitle: true,
+      jobDescription: true,
+      location: true,
+      company: {
+        select: {
+          name: true,
+          logo: true,
+        },
+      },
+    },
+  });
+
+  if (!job) {
+    return {
+      title: "Job Not Found",
+    };
+  }
+
+  const description = JSON.parse(job.jobDescription).content || "";
+  const metaDescription = `Apply for ${job.jobTitle} at ${job.company.name} in ${job.location}. ${description.slice(0, 150)}`;
+
+  return {
+    title: `${job.jobTitle} at ${job.company.name} | JobsFinder`,
+    description: metaDescription,
+    openGraph: {
+      title: `${job.jobTitle} at ${job.company.name}`,
+      description: metaDescription,
+      type: "website",
+      images: job.company.logo ? [job.company.logo] : undefined,
+    },
+  };
+}
+
 const JobIdPage = async ({ params }: { params: Params }) => {
   const { jobId } = await params;
   const req = await request();
@@ -106,8 +152,55 @@ const JobIdPage = async ({ params }: { params: Params }) => {
   );
   const locationFlag = getFlagEmoji(jobData.location);
 
+  const jobUrl = `${process.env.NEXT_PUBLIC_URL}/job/${jobId}`;
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "JobPosting",
+    title: jobData.jobTitle,
+    description: JSON.parse(jobData.jobDescription).content || "",
+    identifier: {
+      "@type": "PropertyValue",
+      name: "JobsFinder",
+      value: jobId,
+    },
+    datePosted: jobData.createdAt.toISOString(),
+    validThrough: new Date(
+      jobData.createdAt.getTime() +
+        jobData.listingDuration * 24 * 60 * 60 * 1000
+    ).toISOString(),
+    employmentType: jobData.employmentType,
+    hiringOrganization: {
+      "@type": "Organization",
+      name: jobData.company.name,
+      sameAs: jobData.company.website || undefined,
+    },
+    jobLocation: {
+      "@type": "Place",
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: jobData.location,
+      },
+    },
+    baseSalary: {
+      "@type": "MonetaryAmount",
+      currency: "USD",
+      value: {
+        "@type": "QuantitativeValue",
+        minValue: jobData.salaryFrom,
+        maxValue: jobData.salaryTo,
+        unitText: "YEAR",
+      },
+    },
+    url: jobUrl,
+  };
+
   return (
-    <div className="container mx-auto py-8">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <div className="container mx-auto py-8">
       <div className="grid lg:grid-cols-[1fr,400px] gap-8">
         {/* Main Content */}
         <div className="space-y-8">
@@ -284,6 +377,7 @@ const JobIdPage = async ({ params }: { params: Params }) => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
