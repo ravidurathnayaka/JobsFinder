@@ -35,6 +35,7 @@ export default async function CompanyProfilePage({
           createdAt: true,
         },
         orderBy: { createdAt: "desc" },
+        take: 50, // Limit active jobs displayed
       },
     },
   });

@@ -1,14 +1,17 @@
 import { Resend } from "resend";
+import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
+import { ExternalServiceError } from "@/lib/errors";
 
 const fromAddress =
-  process.env.RESEND_FROM_EMAIL || "JobsFinder <onboarding@resend.dev>";
+  env.RESEND_FROM_EMAIL || "JobsFinder <onboarding@resend.dev>";
 
 function getClient() {
-  if (!process.env.RESEND_API_KEY) {
+  if (!env.RESEND_API_KEY) {
     return null;
   }
 
-  return new Resend(process.env.RESEND_API_KEY);
+  return new Resend(env.RESEND_API_KEY);
 }
 
 export async function sendEmail({
@@ -22,14 +25,21 @@ export async function sendEmail({
 }) {
   const client = getClient();
   if (!client) {
-    console.warn("RESEND_API_KEY is not configured. Skipping email.");
+    logger.warn("Email sending skipped - RESEND_API_KEY not configured");
     return;
   }
 
-  await client.emails.send({
-    from: fromAddress,
-    to: [to],
-    subject,
-    html,
-  });
+  try {
+    await client.emails.send({
+      from: fromAddress,
+      to: [to],
+      subject,
+      html,
+    });
+
+    logger.info("Email sent successfully", { to, subject });
+  } catch (error) {
+    logger.error("Failed to send email", error, { to, subject });
+    throw new ExternalServiceError("Resend", "Failed to send email", error as Error);
+  }
 }

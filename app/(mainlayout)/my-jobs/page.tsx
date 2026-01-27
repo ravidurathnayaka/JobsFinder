@@ -33,6 +33,10 @@ import prisma from "@/app/utils/db";
 
 import { requireUser } from "@/app/utils/requireUser";
 import { CopyLinkMenuItem } from "@/components/general/CopyLink";
+import { env } from "@/lib/env";
+
+// Maximum jobs to fetch per user (prevent memory issues)
+const MAX_USER_JOBS = 1000;
 
 async function getJobs(userId: string) {
   const data = await prisma.jobPost.findMany({
@@ -52,10 +56,17 @@ async function getJobs(userId: string) {
           logo: true,
         },
       },
+      _count: {
+        select: {
+          JobView: true,
+          Application: true,
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
     },
+    take: MAX_USER_JOBS, // Limit to prevent memory issues
   });
 
   return data;
@@ -121,7 +132,16 @@ const MyJobs = async () => {
                       {listing.status.charAt(0).toUpperCase() +
                         listing.status.slice(1).toLowerCase()}
                     </TableCell>
-                    <TableCell>5</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm font-medium">
+                          {listing._count.Application} applications
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {listing._count.JobView} views
+                        </span>
+                      </div>
+                    </TableCell>
                     <TableCell>
                       {listing.createdAt.toLocaleDateString("en-US", {
                         month: "long",
@@ -145,13 +165,19 @@ const MyJobs = async () => {
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
+                            <Link href={`/my-jobs/${listing.id}/analytics`}>
+                              <Briefcase className="size-4" />
+                              Analytics
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
                             <Link href={`/my-jobs/${listing.id}/applications`}>
                               <Briefcase className="size-4" />
                               Applications
                             </Link>
                           </DropdownMenuItem>
                           <CopyLinkMenuItem
-                            jobUrl={`${process.env.NEXT_PUBLIC_URL}/job/${listing.id}`}
+                            jobUrl={`${env.NEXT_PUBLIC_URL}/job/${listing.id}`}
                           />
                           <DropdownMenuSeparator />
                           <DropdownMenuItem asChild>

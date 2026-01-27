@@ -24,6 +24,8 @@ import { benefits } from "@/app/utils/listofBenefits";
 import { JsonToHtml } from "@/components/general/JsonToHtml";
 import arcjet, { detectBot } from "@/app/utils/arcjet";
 import type { Metadata } from "next";
+import { JobViewTracker } from "@/components/general/JobViewTracker";
+import { env } from "@/lib/env";
 
 const aj = arcjet.withRule(
   detectBot({
@@ -152,7 +154,7 @@ const JobIdPage = async ({ params }: { params: Params }) => {
   );
   const locationFlag = getFlagEmoji(jobData.location);
 
-  const jobUrl = `${process.env.NEXT_PUBLIC_URL}/job/${jobId}`;
+  const jobUrl = `${env.NEXT_PUBLIC_URL}/job/${jobId}`;
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "JobPosting",
@@ -196,6 +198,7 @@ const JobIdPage = async ({ params }: { params: Params }) => {
 
   return (
     <>
+      <JobViewTracker jobId={jobId} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}

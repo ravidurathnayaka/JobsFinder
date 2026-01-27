@@ -21,8 +21,8 @@ export default function PaymentSucess() {
     fetch(`/api/stripe/activate?session_id=${encodeURIComponent(sessionId)}`, {
       method: "POST",
       signal: controller.signal,
-    }).catch((error) => {
-      console.error("Failed to activate job from session", error);
+    }).catch(() => {
+      // Error is logged on the server side
     });
 
     return () => controller.abort();

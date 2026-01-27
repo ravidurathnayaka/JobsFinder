@@ -19,6 +19,9 @@ import { revalidatePath } from "next/cache";
 import { isAdmin } from "./utils/isAdmin";
 import { JobPostStatus } from "@/lib/generated/prisma/client";
 import { sendEmail } from "./utils/email";
+import { logger } from "@/lib/logger";
+import { ValidationError, NotFoundError, AuthorizationError } from "@/lib/errors";
+import { env } from "@/lib/env";
 
 const aj = arcjet
   .withRule(
@@ -38,14 +41,14 @@ export async function createCompany(data: z.infer<typeof companySchema>) {
   const decision = await aj.protect(req);
 
   if (decision.isDenied()) {
-    throw new Error("Forbidden");
+    throw new AuthorizationError("Request denied by security rules");
   }
 
   const user = await requireUser();
 
   const validatedData = companySchema.parse(data);
 
-  console.log(validatedData);
+  logger.debug("Creating company profile", { userId: user.id });
 
   await prisma.user.update({
     where: {
@@ -79,7 +82,7 @@ export async function createJobSeeker(data: z.infer<typeof jobSeekerSchema>) {
   const decision = await aj.protect(req);
 
   if (decision.isDenied()) {
-    throw new Error("Forbidden");
+    throw new AuthorizationError("Request denied by security rules");
   }
 
   const user = await requireUser();
@@ -177,7 +180,7 @@ export async function createJob(data: z.infer<typeof jobSchema>) {
   );
 
   if (!pricingTier) {
-    throw new Error("Invalid listing duration selected");
+    throw new ValidationError("Invalid listing duration selected");
   }
 
   const session = await stripe.checkout.sessions.create({
@@ -202,8 +205,8 @@ export async function createJob(data: z.infer<typeof jobSchema>) {
       jobId: jobPost.id,
     },
     mode: "payment",
-    success_url: `${process.env.NEXT_PUBLIC_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env.NEXT_PUBLIC_URL}/payment/cancel`,
+    success_url: `${env.NEXT_PUBLIC_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${env.NEXT_PUBLIC_URL}/payment/cancel`,
   });
 
   return redirect(session.url as string);
@@ -314,7 +317,7 @@ export async function adminApproveJob(jobId: string) {
 
   const companyEmail = job.company.user.email;
   if (companyEmail) {
-    const jobUrl = `${process.env.NEXT_PUBLIC_URL}/job/${job.id}`;
+    const jobUrl = `${env.NEXT_PUBLIC_URL}/job/${job.id}`;
     await sendEmail({
       to: companyEmail,
       subject: "Your job post has been approved",
@@ -451,9 +454,7 @@ export async function applyToJob(
   data: z.infer<typeof applicationSchema>
 ) {
   const user = await requireUser();
-  const validatedData = applicationSchema.parse(data);
-
-  await prisma.application.create({
+  const validatedData = applicationSchema.parse(data);  await prisma.application.create({
     data: {
       jobId,
       userId: user.id,

@@ -86,6 +86,7 @@ model Company {
   userId    String    @unique
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  @@index([userId])
 }
 
 model JobSeeker {
@@ -116,6 +117,11 @@ model JobPost {
   updatedAt       DateTime        @updatedAt
   SavedJobPost SavedJobPost[]
   Application Application[]
+  JobView JobView[]
+  @@index([status])
+  @@index([companyId])
+  @@index([createdAt])
+  @@index([status, createdAt])
 }
 
 model Application {
@@ -131,6 +137,9 @@ model Application {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   @@unique([userId, jobId])
+  @@index([jobId])
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model SavedJobPost {
@@ -142,6 +151,20 @@ model SavedJobPost {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@unique([userId, jobId])
+  @@index([userId])
+  @@index([jobId])
+}
+
+model JobView {
+  id        String   @id @default(uuid())
+  jobId     String
+  job       JobPost  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  userId    String?  // null for anonymous views
+  userAgent String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+  @@index([jobId])
+  @@index([createdAt])
 }
 
 

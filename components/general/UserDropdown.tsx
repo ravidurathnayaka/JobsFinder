@@ -14,6 +14,7 @@ import {
 import {
   Building2,
   ChevronDown,
+  CreditCard,
   Heart,
   Layers2,
   LogOut,
@@ -125,6 +126,17 @@ export function UserDropdown({
                 aria-hidden="true"
               />
               <span>My Job Listings</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/account/billing">
+              <CreditCard
+                size={16}
+                strokeWidth={2}
+                className="opacity-60"
+                aria-hidden="true"
+              />
+              <span>Billing & Invoices</span>
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>

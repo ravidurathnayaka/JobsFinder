@@ -4,13 +4,20 @@ import prisma from "@/app/utils/db";
 import { EmptyState } from "./EmptyState";
 import { JobPostStatus } from "@/lib/generated/prisma/client";
 
+// Maximum page size to prevent memory issues
+const MAX_PAGE_SIZE = 50;
+const DEFAULT_PAGE_SIZE = 10;
+
 async function getJobs(
   page: number = 1,
-  pageSize: number = 10,
+  pageSize: number = DEFAULT_PAGE_SIZE,
   jobTypes: string[] = [],
   location: string = ""
 ) {
-  const skip = (page - 1) * pageSize;
+  // Enforce maximum page size
+  const safePageSize = Math.min(pageSize, MAX_PAGE_SIZE);
+  const safePage = Math.max(1, page);
+  const skip = (safePage - 1) * safePageSize;
 
   const where = {
     status: JobPostStatus.ACTIVE,
@@ -28,7 +35,7 @@ async function getJobs(
   const [data, totalCount] = await Promise.all([
     prisma.jobPost.findMany({
       skip,
-      take: pageSize,
+      take: safePageSize,
       where,
       select: {
         jobTitle: true,
@@ -56,8 +63,8 @@ async function getJobs(
 
   return {
     jobs: data,
-    totalPages: Math.ceil(totalCount / pageSize),
-    currentPage: page,
+    totalPages: Math.ceil(totalCount / safePageSize),
+    currentPage: safePage,
   };
 }
 
@@ -74,7 +81,7 @@ export default async function JobListings({
     jobs,
     totalPages,
     currentPage: page,
-  } = await getJobs(currentPage, 7, jobTypes, location);
+  } = await getJobs(currentPage, DEFAULT_PAGE_SIZE, jobTypes, location);
 
   return (
     <>

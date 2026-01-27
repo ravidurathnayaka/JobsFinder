@@ -20,6 +20,8 @@ import {
 import { AdminJobActions } from "@/components/admin/AdminJobActions";
 import { EmptyState } from "@/components/general/EmptyState";
 
+const MAX_ADMIN_JOBS = 1000; // Limit to prevent memory issues
+
 async function getJobs() {
   return prisma.jobPost.findMany({
     select: {
@@ -36,6 +38,7 @@ async function getJobs() {
     orderBy: {
       createdAt: "desc",
     },
+    take: MAX_ADMIN_JOBS,
   });
 }
 

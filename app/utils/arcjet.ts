@@ -17,8 +17,10 @@ export {
   slidingWindow,
 };
 
+import { env } from "@/lib/env";
+
 // Create a base Arcjet instance for use by each handler
 export default arcjet({
-  key: process.env.ARCJET_KEY!,
+  key: env.ARCJET_KEY,
   rules: [],
 });

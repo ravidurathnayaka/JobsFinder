@@ -1,6 +1,7 @@
 import { requireUser } from "@/app/utils/requireUser";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
+import { logger } from "@/lib/logger";
 
 const f = createUploadthing();
 // FileRouter for your app, can contain multiple FileRoutes
@@ -24,9 +25,11 @@ export const ourFileRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       // This code RUNS ON YOUR SERVER after upload
-      console.log("Upload complete for userId:", metadata.userId);
-
-      console.log("file url", file.ufsUrl);
+      logger.info("Image upload complete", {
+        userId: metadata.userId,
+        fileUrl: file.ufsUrl,
+        fileName: file.name,
+      });
 
       // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
       return { uploadedBy: metadata.userId };
@@ -50,9 +53,11 @@ export const ourFileRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       // This code RUNS ON YOUR SERVER after upload
-      console.log("Upload complete for userId:", metadata.userId);
-
-      console.log("file url", file.ufsUrl);
+      logger.info("Image upload complete", {
+        userId: metadata.userId,
+        fileUrl: file.ufsUrl,
+        fileName: file.name,
+      });
 
       // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
       return { uploadedBy: metadata.userId };

@@ -4,10 +4,11 @@ import arcjet, {
   tokenBucket,
   shield,
 } from "@arcjet/next";
+import { env } from "@/lib/env";
 
 export { detectBot, fixedWindow, tokenBucket, shield };
 
 export default arcjet({
-  key: process.env.ARCJET_KEY!,
+  key: env.ARCJET_KEY,
   rules: [],
 });

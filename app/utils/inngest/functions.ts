@@ -1,6 +1,8 @@
 import prisma from "../db";
 import { inngest } from "./client";
 import { sendEmail } from "../email";
+import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 export const handleJobExpiration = inngest.createFunction(
   { id: "job-expiration" },
@@ -31,7 +33,7 @@ export const handleJobExpiration = inngest.createFunction(
         });
 
         if (job?.status === "ACTIVE" && job.company.user.email) {
-          const jobUrl = `${process.env.NEXT_PUBLIC_URL}/job/${job.id}`;
+          const jobUrl = `${env.NEXT_PUBLIC_URL}/job/${job.id}`;
           await sendEmail({
             to: job.company.user.email,
             subject: "Your job post is expiring soon",

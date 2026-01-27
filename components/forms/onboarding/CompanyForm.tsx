@@ -71,7 +71,6 @@ export default function CompanyForm({
         await createCompany(values);
       }
     } catch (error) {
-      console.log(error);
       if (error instanceof Error && error.message !== "NEXT_REDIRECT") {
         toast.error("Something went wrong. Please try again.");
       }

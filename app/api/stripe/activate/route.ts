@@ -3,6 +3,8 @@ import { stripe } from "@/app/utils/stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { sendEmail } from "@/app/utils/email";
 import { inngest } from "@/app/utils/inngest/client";
+import { logger } from "@/lib/logger";
+import { env } from "@/lib/env";
 
 export async function POST(req: NextRequest) {
   const sessionId =
@@ -60,7 +62,7 @@ export async function POST(req: NextRequest) {
 
       const companyEmail = job?.company.user.email;
       if (companyEmail) {
-        const jobUrl = `${process.env.NEXT_PUBLIC_URL}/job/${job.id}`;
+        const jobUrl = `${env.NEXT_PUBLIC_URL}/job/${job.id}`;
         await sendEmail({
           to: companyEmail,
           subject: "Your job post is live",
@@ -79,13 +81,21 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    logger.info("Job activated from Stripe checkout", {
+      jobId,
+      sessionId,
+      updatedCount: result.count,
+    });
+
     return NextResponse.json({
       ok: true,
       updatedCount: result.count,
       jobId,
     });
   } catch (error) {
-    console.error("Failed to activate job from checkout session", error);
+    logger.error("Failed to activate job from checkout session", error, {
+      sessionId,
+    });
     return NextResponse.json(
       { error: "Failed to activate job" },
       { status: 500 }

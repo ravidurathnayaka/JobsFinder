@@ -2,6 +2,9 @@ import prisma from "@/app/utils/db";
 import { stripe } from "@/app/utils/stripe";
 import { headers } from "next/headers";
 import Stripe from "stripe";
+import { logger } from "@/lib/logger";
+import { env } from "@/lib/env";
+import { handleApiError } from "@/lib/errors";
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -16,10 +19,11 @@ export async function POST(req: Request) {
     event = stripe.webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET as string
+      env.STRIPE_WEBHOOK_SECRET
     );
-  } catch {
-    return new Response("Webhook error", { status: 400 });
+  } catch (error) {
+    logger.error("Stripe webhook signature verification failed", error);
+    return new Response("Webhook signature verification failed", { status: 400 });
   }
 
   const session = event.data.object as Stripe.Checkout.Session;
@@ -28,8 +32,10 @@ export async function POST(req: Request) {
     const jobId = session.metadata?.jobId;
 
     if (!jobId) {
-      console.error("No job ID found in session metadata");
-      return new Response("No job ID found", { status: 400 });
+      logger.error("No job ID found in Stripe session metadata", undefined, {
+        sessionId: session.id,
+      });
+      return new Response("No job ID found in session metadata", { status: 400 });
     }
 
     await prisma.jobPost.updateMany({

@@ -13,8 +13,7 @@ export function CopyLinkMenuItem({ jobUrl }: CopyLinkMenuItemProps) {
     try {
       await navigator.clipboard.writeText(jobUrl);
       toast.success("URL copied to clipboard");
-    } catch (err) {
-      console.error("Could not copy text: ", err);
+    } catch {
       toast.error("Failed to copy URL");
     }
   };

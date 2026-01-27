@@ -78,11 +78,8 @@ const CreateJobForm = ({
   async function onSubmit(values: z.infer<typeof jobSchema>) {
     try {
       setPending(true);
-      console.log("Submit the values");
-
       await createJob(values);
     } catch (error) {
-      console.log(error);
       if (error instanceof Error && error.message !== "NEXT_REDIRECT") {
         toast.error("Something went wrong. Please try again.");
       }

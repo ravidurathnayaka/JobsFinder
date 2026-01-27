@@ -6,6 +6,8 @@ import { JobCard } from "@/components/general/JobCard";
 import prisma from "@/app/utils/db";
 import { requireUser } from "@/app/utils/hooks";
 
+const MAX_FAVORITES = 500; // Limit favorites to prevent memory issues
+
 async function getFavorites(userId: string) {
   const data = await prisma.savedJobPost.findMany({
     where: {
@@ -32,6 +34,10 @@ async function getFavorites(userId: string) {
         },
       },
     },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: MAX_FAVORITES,
   });
 
   return data;

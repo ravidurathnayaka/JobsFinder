@@ -1,9 +1,11 @@
+import { env } from "@/lib/env";
+
 export function isAdmin(email?: string | null) {
   if (!email) {
     return false;
   }
 
-  const adminEmails = process.env.ADMIN_EMAILS?.split(",")
+  const adminEmails = env.ADMIN_EMAILS?.split(",")
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean);
 

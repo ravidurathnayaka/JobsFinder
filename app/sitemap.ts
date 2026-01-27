@@ -1,8 +1,12 @@
 import { MetadataRoute } from "next";
 import prisma from "./utils/db";
+import { env } from "@/lib/env";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
+  const baseUrl = env.NEXT_PUBLIC_URL;
+
+  // Sitemap limit per Google's recommendations (50,000 URLs max)
+  const SITEMAP_LIMIT = 50000;
 
   const jobs = await prisma.jobPost.findMany({
     where: { status: "ACTIVE" },
@@ -10,7 +14,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       id: true,
       updatedAt: true,
     },
-    take: 10000,
+    take: SITEMAP_LIMIT,
+    orderBy: {
+      updatedAt: "desc",
+    },
   });
 
   const jobUrls = jobs.map((job) => ({
