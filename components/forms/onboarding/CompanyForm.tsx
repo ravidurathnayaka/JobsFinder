@@ -216,11 +216,50 @@ export default function CompanyForm({
                     <UploadDropzone
                       endpoint="imageUploader"
                       onClientUploadComplete={(res) => {
-                        field.onChange(res[0].url);
-                        toast.success("Logo uploaded successfully!");
+                        if (res && res.length > 0 && res[0]?.url) {
+                          field.onChange(res[0].url);
+                          toast.success("Logo uploaded successfully!");
+                        } else {
+                          toast.error(
+                            "Upload completed but no file URL received. Please try again.",
+                          );
+                        }
                       }}
-                      onUploadError={() => {
-                        toast.error("Something went wrong. Please try again.");
+                      onUploadError={(error) => {
+                        console.error("Upload error details:", {
+                          error,
+                          message: error?.message,
+                          cause: error?.cause,
+                          name: error?.name,
+                          stack: error?.stack,
+                        });
+
+                        // Extract more detailed error information
+                        let errorMessage = "Failed to upload file.";
+
+                        if (error?.message) {
+                          errorMessage = error.message;
+                        } else if (error?.cause) {
+                          errorMessage = `Upload failed: ${String(error.cause)}`;
+                        } else if (typeof error === "string") {
+                          errorMessage = error;
+                        }
+
+                        // Add helpful troubleshooting info
+                        if (
+                          errorMessage.includes("report") ||
+                          errorMessage.includes("UploadThing")
+                        ) {
+                          errorMessage +=
+                            " Please check your UPLOADTHING_TOKEN in .env file and ensure your server is accessible.";
+                        }
+
+                        toast.error(errorMessage, {
+                          duration: 5000,
+                        });
+                      }}
+                      onUploadBegin={(name) => {
+                        toast.info(`Uploading ${name}...`);
                       }}
                       className="ut-button:bg-primary ut-button:text-white ut-button:hover:bg-primary/90 ut-label:text-muted-foreground ut-allowed-content:text-muted-foreground border-primary"
                     />

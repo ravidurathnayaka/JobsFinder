@@ -94,62 +94,69 @@ const MyJobs = async () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Logo</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Job Title</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Applicants</TableHead>
-                  <TableHead>Created On</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.map((listing) => (
-                  <TableRow key={listing.id}>
-                    <TableCell>
-                      {listing.company.logo ? (
-                        <Image
-                          src={listing.company.logo}
-                          alt={`${listing.company.name} logo`}
-                          width={40}
-                          height={40}
-                          className="rounded-md size-10"
-                        />
-                      ) : (
-                        <div className="bg-red-500 size-10 rounded-lg flex items-center justify-center">
-                          <User2 className="size-6 text-white" />
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {listing.company.name}
-                    </TableCell>
-                    <TableCell>{listing.jobTitle}</TableCell>
-                    <TableCell>
-                      {listing.status.charAt(0).toUpperCase() +
-                        listing.status.slice(1).toLowerCase()}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        <span className="text-sm font-medium">
-                          {listing._count.Application} applications
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {listing._count.JobView} views
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {listing.createdAt.toLocaleDateString("en-US", {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </TableCell>
-                    <TableCell className="text-right">
+            <div className="overflow-x-auto -mx-4 md:mx-0">
+              <div className="inline-block min-w-full align-middle px-4 md:px-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="hidden sm:table-cell">Logo</TableHead>
+                      <TableHead className="hidden md:table-cell">Company</TableHead>
+                      <TableHead>Job Title</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="hidden lg:table-cell">Applicants</TableHead>
+                      <TableHead className="hidden md:table-cell">Created On</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data.map((listing) => (
+                      <TableRow key={listing.id}>
+                        <TableCell className="hidden sm:table-cell">
+                          {listing.company.logo ? (
+                            <Image
+                              src={listing.company.logo}
+                              alt={`${listing.company.name} logo`}
+                              width={40}
+                              height={40}
+                              className="rounded-md size-10"
+                            />
+                          ) : (
+                            <div className="bg-red-500 size-10 rounded-lg flex items-center justify-center">
+                              <User2 className="size-6 text-white" />
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          <div className="flex flex-col">
+                            <span className="hidden md:inline">{listing.company.name}</span>
+                            <span className="md:hidden">{listing.jobTitle}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">{listing.jobTitle}</TableCell>
+                        <TableCell>
+                          <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium">
+                            {listing.status.charAt(0).toUpperCase() +
+                              listing.status.slice(1).toLowerCase()}
+                          </span>
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-sm font-medium">
+                              {listing._count.Application} applications
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {listing._count.JobView} views
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          {listing.createdAt.toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </TableCell>
+                        <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
@@ -188,11 +195,13 @@ const MyJobs = async () => {
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}

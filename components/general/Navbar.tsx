@@ -6,6 +6,7 @@ import { auth } from "@/app/utils/auth";
 import { UserDropdown } from "./UserDropdown";
 import { isAdmin } from "@/app/utils/isAdmin";
 import prisma from "@/app/utils/db";
+import { MobileMenu } from "./MobileMenu";
 
 const Navbar = async () => {
   const session = await auth();
@@ -17,11 +18,11 @@ const Navbar = async () => {
     : null;
 
   return (
-    <nav className="flex justify-between items-center py-5">
+    <nav className="flex justify-between items-center py-4 md:py-5 shadow-sm mb-12 md:mb-20 w-full px-4 md:px-6 lg:px-8">
       <Link href={"/"}>
-        <div className="flex gap-3 justify-center items-center">
-          <Briefcase className="text-primary w-10 h-10" />
-          <h1 className="text-primary text-2xl font-bold">JobsFinder</h1>
+        <div className="flex gap-2 md:gap-3 justify-center items-center">
+          <Briefcase className="text-primary w-8 h-8 md:w-10 md:h-10" />
+          <h1 className="text-primary text-xl md:text-2xl font-bold">JobsFinder</h1>
         </div>
       </Link>
 
@@ -47,6 +48,26 @@ const Navbar = async () => {
             Login
           </Link>
         )}
+      </div>
+
+      {/* Mobile Navigation */}
+      <div className="flex md:hidden items-center gap-2">
+        <ThemeToggle />
+        <MobileMenu
+          session={
+            session?.user
+              ? {
+                  user: {
+                    email: session.user.email as string,
+                    name: session.user.name as string,
+                    image: session.user.image as string,
+                  },
+                }
+              : null
+          }
+          isAdmin={isAdmin(session?.user?.email || "")}
+          userType={userData?.userType}
+        />
       </div>
     </nav>
   );

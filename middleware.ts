@@ -1,6 +1,6 @@
 /**
  * Next.js Middleware
- * 
+ *
  * Handles:
  * - Security headers
  * - Request logging
@@ -28,19 +28,19 @@ export function middleware(request: NextRequest) {
   if (process.env.NODE_ENV === "production") {
     response.headers.set(
       "Strict-Transport-Security",
-      "max-age=31536000; includeSubDomains"
+      "max-age=31536000; includeSubDomains",
     );
   }
 
   // Content Security Policy
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // 'unsafe-eval' needed for Next.js
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://uploadthing.com https://*.uploadthing.com", // 'unsafe-eval' needed for Next.js
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: https:",
+    "img-src 'self' data: https: blob:",
     "font-src 'self' data:",
-    "connect-src 'self' https://api.stripe.com https://api.resend.com https://api.inngest.com https://*.arcjet.net",
-    "frame-src https://js.stripe.com",
+    "connect-src 'self' https://api.stripe.com https://api.resend.com https://api.inngest.com https://*.arcjet.net https://uploadthing.com https://*.uploadthing.com https://utfs.io",
+    "frame-src https://js.stripe.com https://uploadthing.com https://*.uploadthing.com",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
