@@ -31,7 +31,7 @@ export default async function JobApplicationsPage({
     },
     select: {
       jobTitle: true,
-      applications: {
+      Application: {
         select: {
           id: true,
           name: true,
@@ -57,7 +57,7 @@ export default async function JobApplicationsPage({
         <div>
           <h1 className="text-2xl font-semibold">{job.jobTitle} Applications</h1>
           <p className="text-sm text-muted-foreground">
-            Total applicants: {job.applications.length}
+            Total applicants: {job.Application.length}
           </p>
         </div>
         <Link
@@ -85,7 +85,7 @@ export default async function JobApplicationsPage({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {job.applications.map((app) => (
+              {job.Application.map((app) => (
                 <TableRow key={app.id}>
                   <TableCell>{app.name}</TableCell>
                   <TableCell>{app.email}</TableCell>
@@ -110,7 +110,7 @@ export default async function JobApplicationsPage({
                   </TableCell>
                 </TableRow>
               ))}
-              {job.applications.length === 0 ? (
+              {job.Application.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-muted-foreground">
                     No applications yet.

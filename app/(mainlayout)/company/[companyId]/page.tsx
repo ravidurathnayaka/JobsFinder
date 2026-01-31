@@ -49,9 +49,7 @@ export default async function CompanyProfilePage({
       <Card className="p-6 space-y-4">
         <div className="flex flex-wrap items-center gap-4">
           <Image
-            src={
-              company.logo ?? `https://avatar.vercel.sh/${company.name}`
-            }
+            src={company.logo ?? `https://avatar.vercel.sh/${company.name}`}
             alt={company.name}
             width={72}
             height={72}

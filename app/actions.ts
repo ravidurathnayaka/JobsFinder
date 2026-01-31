@@ -65,14 +65,23 @@ export async function createCompany(data: z.infer<typeof companySchema>) {
     },
   });
 
-  await inngest.send({
-    name: "jobseeker/created",
-    data: {
-      userId: user.id,
-      email: user.email,
-      name: validatedData.name,
-    },
-  });
+  if (env.INNGEST_EVENT_KEY) {
+    try {
+      await inngest.send({
+        name: "jobseeker/created",
+        data: {
+          userId: user.id,
+          email: user.email,
+          name: validatedData.name,
+        },
+      });
+    } catch (err) {
+      logger.warn("Inngest send failed after company creation", {
+        userId: user.id,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
 
   return redirect("/");
 }
@@ -454,14 +463,20 @@ export async function applyToJob(
   data: z.infer<typeof applicationSchema>
 ) {
   const user = await requireUser();
-  const validatedData = applicationSchema.parse(data);  await prisma.application.create({
+  const userId = user.id;
+  if (!userId) {
+    redirect("/login");
+  }
+  const validatedData = applicationSchema.parse(data);
+  await prisma.application.create({
     data: {
       jobId,
-      userId: user.id,
+      userId,
       name: validatedData.name,
       email: validatedData.email,
       resume: validatedData.resume,
       coverLetter: validatedData.coverLetter,
     },
-  });  revalidatePath(`/job/${jobId}`);
+  });
+  revalidatePath(`/job/${jobId}`);
 }

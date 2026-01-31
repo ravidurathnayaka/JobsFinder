@@ -58,7 +58,6 @@ async function getJobs(userId: string) {
       },
       _count: {
         select: {
-          JobView: true,
           Application: true,
         },
       },
@@ -140,14 +139,10 @@ const MyJobs = async () => {
                           </span>
                         </TableCell>
                         <TableCell className="hidden lg:table-cell">
-                          <div className="flex flex-col gap-1">
-                            <span className="text-sm font-medium">
-                              {listing._count.Application} applications
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {listing._count.JobView} views
-                            </span>
-                          </div>
+                          <span className="text-sm font-medium">
+                            {listing._count.Application} application
+                            {listing._count.Application !== 1 ? "s" : ""}
+                          </span>
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
                           {listing.createdAt.toLocaleDateString("en-US", {

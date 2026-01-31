@@ -26,6 +26,56 @@ import arcjet, { detectBot } from "@/app/utils/arcjet";
 import type { Metadata } from "next";
 import { JobViewTracker } from "@/components/general/JobViewTracker";
 import { env } from "@/lib/env";
+import type { JSONContent } from "@tiptap/react";
+
+/** Get plain text from job description (TipTap JSON or HTML) for meta/structured data */
+function getJobDescriptionPlainText(raw: string, maxLength = 150): string {
+  const trimmed = raw.trim();
+  if (trimmed.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(raw) as { content?: unknown[]; text?: string };
+      const text = extractTextFromTiptap(parsed);
+      return text.slice(0, maxLength);
+    } catch {
+      return stripHtml(trimmed).slice(0, maxLength);
+    }
+  }
+  return stripHtml(trimmed).slice(0, maxLength);
+}
+
+function extractTextFromTiptap(
+  node: { content?: unknown[]; text?: string }
+): string {
+  if (node.text) return node.text;
+  if (Array.isArray(node.content)) {
+    return node.content
+      .map((n) => extractTextFromTiptap(n as { content?: unknown[]; text?: string }))
+      .join("");
+  }
+  return "";
+}
+
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+/** Parse job description as TipTap JSON or raw HTML */
+function parseJobDescription(
+  raw: string
+): { type: "json"; data: JSONContent } | { type: "html"; data: string } {
+  const trimmed = raw.trim();
+  if (trimmed.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(raw) as JSONContent;
+      if (parsed && (parsed.content !== undefined || parsed.type)) {
+        return { type: "json", data: parsed };
+      }
+    } catch {
+      // fall through to html
+    }
+  }
+  return { type: "html", data: raw };
+}
 
 const aj = arcjet.withRule(
   detectBot({
@@ -120,8 +170,8 @@ export async function generateMetadata({
     };
   }
 
-  const description = JSON.parse(job.jobDescription).content || "";
-  const metaDescription = `Apply for ${job.jobTitle} at ${job.company.name} in ${job.location}. ${description.slice(0, 150)}`;
+  const description = getJobDescriptionPlainText(job.jobDescription);
+  const metaDescription = `Apply for ${job.jobTitle} at ${job.company.name} in ${job.location}. ${description}`;
 
   return {
     title: `${job.jobTitle} at ${job.company.name} | JobsFinder`,
@@ -159,7 +209,7 @@ const JobIdPage = async ({ params }: { params: Params }) => {
     "@context": "https://schema.org",
     "@type": "JobPosting",
     title: jobData.jobTitle,
-    description: JSON.parse(jobData.jobDescription).content || "",
+    description: getJobDescriptionPlainText(jobData.jobDescription, 5000),
     identifier: {
       "@type": "PropertyValue",
       name: "JobsFinder",
@@ -248,7 +298,18 @@ const JobIdPage = async ({ params }: { params: Params }) => {
           </div>
 
           <section>
-            <JsonToHtml json={JSON.parse(jobData.jobDescription)} />
+            {(() => {
+              const parsed = parseJobDescription(jobData.jobDescription);
+              if (parsed.type === "html") {
+                return (
+                  <div
+                    className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl dark:prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{ __html: parsed.data }}
+                  />
+                );
+              }
+              return <JsonToHtml json={parsed.data} />;
+            })()}
           </section>
 
           <section>
