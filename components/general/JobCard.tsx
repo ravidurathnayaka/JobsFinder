@@ -45,7 +45,7 @@ export function JobCard({ job }: iAppProps) {
                 <User2 className="size-6 text-white" />
               </div>
             )}
-            <div className="flex flex-col grow">
+            <div className="flex flex-col grow gap-2">
               <h1 className="text-xl md:text-2xl font-bold">{job.jobTitle}</h1>
               <div className="flex flex-wrap items-center gap-2">
                 <p className="text-sm text-muted-foreground">

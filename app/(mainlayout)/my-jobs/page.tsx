@@ -32,6 +32,7 @@ import { EmptyState } from "@/components/general/EmptyState";
 import prisma from "@/app/utils/db";
 
 import { requireUser } from "@/app/utils/requireUser";
+import { addSampleJobs } from "@/app/actions";
 import { CopyLinkMenuItem } from "@/components/general/CopyLink";
 import { env } from "@/lib/env";
 
@@ -78,19 +79,33 @@ const MyJobs = async () => {
   return (
     <>
       {data.length === 0 ? (
-        <EmptyState
-          title="No job posts found"
-          description="You don't have any job posts yet."
-          buttonText="Create a job post"
-          href="/post-job"
-        />
+        <div className="flex flex-col items-center gap-6">
+          <EmptyState
+            title="No job posts found"
+            description="You don't have any job posts yet."
+            buttonText="Create a job post"
+            href="/post-job"
+          />
+          <form action={addSampleJobs}>
+            <Button type="submit" variant="outline" size="lg">
+              Add sample jobs (like Netflix)
+            </Button>
+          </form>
+        </div>
       ) : (
         <Card>
-          <CardHeader>
-            <CardTitle>My Jobs</CardTitle>
-            <CardDescription>
-              Manage your job listings and applications here.
-            </CardDescription>
+          <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle>My Jobs</CardTitle>
+              <CardDescription>
+                Manage your job listings and applications here.
+              </CardDescription>
+            </div>
+            <form action={addSampleJobs}>
+              <Button type="submit" variant="outline" size="sm">
+                Add sample jobs
+              </Button>
+            </form>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto -mx-4 md:mx-0">

@@ -2,49 +2,62 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
 import { Label } from "@/components/ui/label";
-
+import { Slider } from "@/components/ui/slider";
+import { formatCurrency } from "@/app/utils/formatCurrency";
 import { X } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Checkbox } from "../ui/checkbox";
-import { countryList } from "@/app/utils/countriesList";
 import { Separator } from "../ui/separator";
-import { Input } from "@/components/ui/input";
+
+const SALARY_MIN = 0;
+const SALARY_MAX = 500_000;
+const SALARY_STEP = 5_000;
+
+function salaryRangeFromParams(
+  minParam: string | null,
+  maxParam: string | null
+): [number, number] {
+  const minVal = minParam ? Math.min(SALARY_MAX, Math.max(SALARY_MIN, Number(minParam))) : SALARY_MIN;
+  const maxVal = maxParam ? Math.min(SALARY_MAX, Math.max(SALARY_MIN, Number(maxParam))) : SALARY_MAX;
+  return [Math.min(minVal, maxVal), Math.max(minVal, maxVal)];
+}
 
 export function JobFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const isDraggingRef = useRef(false);
 
   const jobTypes = ["full-time", "part-time", "contract", "internship"];
 
-  // Get current filters from URL
   const currentJobTypes = searchParams.get("jobTypes")?.split(",") || [];
-  const currentLocation = searchParams.get("location") || "";
-  const currentMinSalary = searchParams.get("minSalary") || "";
-  const currentMaxSalary = searchParams.get("maxSalary") || "";
+  const minSalaryParam = searchParams.get("minSalary");
+  const maxSalaryParam = searchParams.get("maxSalary");
+
+  const salaryRangeFromUrl = useMemo(
+    () => salaryRangeFromParams(minSalaryParam, maxSalaryParam),
+    [minSalaryParam, maxSalaryParam]
+  );
+
+  const [localSalaryRange, setLocalSalaryRange] = useState<[number, number]>(salaryRangeFromUrl);
+
+  useEffect(() => {
+    if (!isDraggingRef.current) {
+      setLocalSalaryRange(salaryRangeFromUrl);
+    }
+  }, [salaryRangeFromUrl]);
 
   const createQueryString = useCallback(
-    (name: string, value: string) => {
+    (updates: { name: string; value: string }[]) => {
       const params = new URLSearchParams(searchParams.toString());
-
-      if (value) {
-        params.set(name, value);
-      } else {
-        params.delete(name);
+      for (const { name, value } of updates) {
+        if (value !== "" && value != null) {
+          params.set(name, value);
+        } else {
+          params.delete(name);
+        }
       }
-
       return params.toString();
     },
     [searchParams]
@@ -59,19 +72,24 @@ export function JobFilters() {
     }
 
     const newValue = Array.from(current).join(",");
-    router.push(`?${createQueryString("jobTypes", newValue)}`);
+    router.push(`?${createQueryString([{ name: "jobTypes", value: newValue }])}`);
   };
 
-  const handleLocationChange = (location: string) => {
-    router.push(`?${createQueryString("location", location)}`);
+  const handleSalaryChange = (value: number[]) => {
+    isDraggingRef.current = true;
+    setLocalSalaryRange(value as [number, number]);
   };
 
-  const handleMinSalaryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    router.push(`?${createQueryString("minSalary", e.target.value)}`);
-  };
-
-  const handleMaxSalaryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    router.push(`?${createQueryString("maxSalary", e.target.value)}`);
+  const handleSalaryCommit = (value: number[]) => {
+    isDraggingRef.current = false;
+    const [min, max] = value as [number, number];
+    const isFullRange = min === SALARY_MIN && max === SALARY_MAX;
+    router.push(
+      `?${createQueryString([
+        { name: "minSalary", value: isFullRange ? "" : String(min) },
+        { name: "maxSalary", value: isFullRange ? "" : String(max) },
+      ])}`
+    );
   };
 
   const clearFilters = () => {
@@ -120,61 +138,19 @@ export function JobFilters() {
         </div>
         <Separator />
         <div className="space-y-4">
-          <Label className="text-lg font-semibold">Location</Label>
-          <Select value={currentLocation} onValueChange={handleLocationChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select Location" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Worldwide</SelectLabel>
-                <SelectItem value="worldwide">
-                  <span>🌍</span>
-                  <span className="pl-2">Worldwide / Remote</span>
-                </SelectItem>
-              </SelectGroup>
-              <SelectGroup>
-                <SelectLabel>Location</SelectLabel>
-                {countryList.map((country) => (
-                  <SelectItem value={country.name} key={country.name}>
-                    <span>{country.flagEmoji}</span>
-                    <span className="pl-2">{country.name}</span>
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-        <Separator />
-        <div className="space-y-4">
           <Label className="text-lg font-semibold">Salary Range</Label>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="minSalary" className="text-sm">
-                Min Salary
-              </Label>
-              <Input
-                id="minSalary"
-                type="number"
-                placeholder="0"
-                value={currentMinSalary}
-                onChange={handleMinSalaryChange}
-                className="w-full"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="maxSalary" className="text-sm">
-                Max Salary
-              </Label>
-              <Input
-                id="maxSalary"
-                type="number"
-                placeholder="500,000"
-                value={currentMaxSalary}
-                onChange={handleMaxSalaryChange}
-                className="w-full"
-              />
-            </div>
+          <Slider
+            min={SALARY_MIN}
+            max={SALARY_MAX}
+            step={SALARY_STEP}
+            value={localSalaryRange}
+            onValueChange={handleSalaryChange}
+            onValueCommit={handleSalaryCommit}
+            className="py-4"
+          />
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>{formatCurrency(localSalaryRange[0])}</span>
+            <span>{formatCurrency(localSalaryRange[1])}</span>
           </div>
         </div>
       </CardContent>

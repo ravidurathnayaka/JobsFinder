@@ -22,6 +22,7 @@ import { sendEmail } from "./utils/email";
 import { logger } from "@/lib/logger";
 import { ValidationError, NotFoundError, AuthorizationError } from "@/lib/errors";
 import { env } from "@/lib/env";
+import { SAMPLE_JOBS } from "./data/sampleJobs";
 
 const aj = arcjet
   .withRule(
@@ -263,6 +264,30 @@ export async function deleteJobPost(jobId: string) {
     },
   });
 
+  return redirect("/my-jobs");
+}
+
+export async function addSampleJobs() {
+  const user = await requireUser();
+
+  const company = await prisma.company.findUnique({
+    where: { userId: user.id },
+    select: { id: true },
+  });
+
+  if (!company) {
+    return redirect("/");
+  }
+
+  await prisma.jobPost.createMany({
+    data: SAMPLE_JOBS.map((job) => ({
+      companyId: company.id,
+      status: JobPostStatus.ACTIVE,
+      ...job,
+    })),
+  });
+
+  revalidatePath("/my-jobs");
   return redirect("/my-jobs");
 }
 

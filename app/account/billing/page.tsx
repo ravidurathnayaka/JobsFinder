@@ -3,30 +3,42 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreditCard, FileText, RefreshCw } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
+type LoadingAction = "portal" | "invoices" | null;
+
 export default function BillingPage() {
-  const [isPending, startTransition] = useTransition();
+  const [loadingAction, setLoadingAction] = useState<LoadingAction>(null);
 
-  const handleOpenPortal = () => {
-    startTransition(async () => {
-      try {
-        const response = await fetch("/api/billing/portal", {
-          method: "POST",
-        });
+  const handleOpenPortal = async (action: "portal" | "invoices") => {
+    if (loadingAction) return;
+    setLoadingAction(action);
+    try {
+      const response = await fetch("/api/billing/portal", {
+        method: "POST",
+      });
 
-        if (!response.ok) {
-          throw new Error("Failed to open billing portal");
-        }
+      const data = await response.json();
 
-        const data = await response.json();
-        window.location.href = data.url;
-      } catch (error) {
-        console.error("Error opening billing portal:", error);
-        toast.error("Failed to open billing portal. Please try again.");
+      if (!response.ok) {
+        const message =
+          data?.error?.message ?? data?.error ?? "Failed to open billing portal. Please try again.";
+        toast.error(message);
+        return;
       }
-    });
+
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error("Invalid response from server. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error opening billing portal:", error);
+      toast.error("Failed to open billing portal. Please try again.");
+    } finally {
+      setLoadingAction(null);
+    }
   };
 
   return (
@@ -57,11 +69,11 @@ export default function BillingPage() {
               </p>
             </div>
             <Button
-              onClick={handleOpenPortal}
-              disabled={isPending}
+              onClick={() => handleOpenPortal("portal")}
+              disabled={loadingAction !== null}
               variant="outline"
             >
-              {isPending ? (
+              {loadingAction === "portal" ? (
                 <>
                   <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                   Opening...
@@ -86,11 +98,11 @@ export default function BillingPage() {
               </p>
             </div>
             <Button
-              onClick={handleOpenPortal}
-              disabled={isPending}
+              onClick={() => handleOpenPortal("invoices")}
+              disabled={loadingAction !== null}
               variant="outline"
             >
-              {isPending ? (
+              {loadingAction === "invoices" ? (
                 <>
                   <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                   Opening...

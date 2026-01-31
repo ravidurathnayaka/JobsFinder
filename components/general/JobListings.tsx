@@ -6,30 +6,55 @@ import { JobPostStatus } from "@/lib/generated/prisma/client";
 
 // Maximum page size to prevent memory issues
 const MAX_PAGE_SIZE = 50;
-const DEFAULT_PAGE_SIZE = 10;
+const DEFAULT_PAGE_SIZE = 5;
 
 async function getJobs(
   page: number = 1,
   pageSize: number = DEFAULT_PAGE_SIZE,
   jobTypes: string[] = [],
-  location: string = ""
+  location: string = "",
+  search: string = "",
+  minSalary: string = "",
+  maxSalary: string = ""
 ) {
-  // Enforce maximum page size
   const safePageSize = Math.min(pageSize, MAX_PAGE_SIZE);
   const safePage = Math.max(1, page);
   const skip = (safePage - 1) * safePageSize;
 
+  const searchTerm = search.trim();
+  const cleanJobTypes = jobTypes.filter(Boolean);
+  const min = minSalary ? parseInt(minSalary, 10) : undefined;
+  const max = maxSalary ? parseInt(maxSalary, 10) : undefined;
+  const isFullSalaryRange = min === 0 && max === 500_000;
+  const hasSalaryFilter =
+    !isFullSalaryRange &&
+    min != null &&
+    !Number.isNaN(min) &&
+    max != null &&
+    !Number.isNaN(max);
+
   const where = {
     status: JobPostStatus.ACTIVE,
-    ...(jobTypes.length > 0 && {
+    ...(searchTerm && {
+      jobTitle: {
+        contains: searchTerm,
+        mode: "insensitive" as const,
+      },
+    }),
+    // Only filter by type when user selected some but not all (empty = show all; all 4 = show all)
+    ...(cleanJobTypes.length > 0 && cleanJobTypes.length < 4 && {
       employmentType: {
-        in: jobTypes,
+        in: cleanJobTypes,
       },
     }),
     ...(location &&
       location !== "worldwide" && {
         location: location,
       }),
+    ...(hasSalaryFilter && {
+      salaryFrom: { lte: max },
+      salaryTo: { gte: min },
+    }),
   };
 
   const [data, totalCount] = await Promise.all([
@@ -68,20 +93,36 @@ async function getJobs(
   };
 }
 
-export default async function JobListings({
-  currentPage,
-  jobTypes,
-  location,
-}: {
+interface JobListingsProps {
   currentPage: number;
+  search: string;
   jobTypes: string[];
   location: string;
-}) {
+  minSalary?: string;
+  maxSalary?: string;
+}
+
+export default async function JobListings({
+  currentPage,
+  search,
+  jobTypes,
+  location,
+  minSalary = "",
+  maxSalary = "",
+}: JobListingsProps) {
   const {
     jobs,
     totalPages,
     currentPage: page,
-  } = await getJobs(currentPage, DEFAULT_PAGE_SIZE, jobTypes, location);
+  } = await getJobs(
+    currentPage,
+    DEFAULT_PAGE_SIZE,
+    jobTypes,
+    location,
+    search,
+    minSalary,
+    maxSalary
+  );
 
   return (
     <>
