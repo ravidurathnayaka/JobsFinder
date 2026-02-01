@@ -35,6 +35,20 @@ A job board app: browse jobs, post jobs (companies), apply (job seekers). Built 
 
    App: [http://localhost:3000](http://localhost:3000)
 
+## Deploy to Vercel
+
+1. **Push to GitHub** and import the repo in [Vercel](https://vercel.com).
+2. **Set environment variables** in the Vercel project (Settings → Environment Variables). Use the same keys as `.env.example`; for production set:
+   - `NEXT_PUBLIC_URL` – your production URL (e.g. `https://your-app.vercel.app`)
+   - `DATABASE_URL` – production PostgreSQL (e.g. Vercel Postgres or Neon)
+   - `AUTH_SECRET` – generate with `openssl rand -base64 32`
+   - Stripe, UploadThing, Resend, Arcjet, Inngest keys for production
+3. **Build command**: `pnpm build` (or `prisma generate && next build`)
+4. **Install command**: `pnpm install`
+5. **Database**: Run migrations on your production DB (e.g. `pnpm prisma db push` or use a migration workflow). Optionally run `pnpm db:seed` for sample data.
+
+After deploy, configure Stripe webhook to point to `https://your-app.vercel.app/api/webhook/stripe` and Inngest to your app’s Inngest endpoint if you use job expiration.
+
 ## Scripts
 
 - `pnpm dev` – start dev server (port 3000)

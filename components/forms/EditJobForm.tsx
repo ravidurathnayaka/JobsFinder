@@ -222,7 +222,7 @@ export function EditJobForm({ jobPost, updateAction }: iAppProps) {
                 <FormItem>
                   <FormLabel>Job Description</FormLabel>
                   <FormControl>
-                    <JobDescriptionEditor field={field as any} />
+                    <JobDescriptionEditor field={field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

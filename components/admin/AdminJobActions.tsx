@@ -9,7 +9,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { adminApproveJob, adminRejectJob } from "@/app/actions";
+import { adminApproveJob, adminRejectJob, adminDeleteJobPost } from "@/app/actions";
+import { DeleteJobDialog } from "@/components/general/DeleteJobDialog";
 import Link from "next/link";
 import {
   Eye,
@@ -24,12 +25,14 @@ type ActionState = "approve" | "reject" | null;
 
 interface AdminJobActionsProps {
   jobId: string;
+  jobTitle?: string;
   status: string;
 }
 
-export function AdminJobActions({ jobId, status }: AdminJobActionsProps) {
+export function AdminJobActions({ jobId, jobTitle, status }: AdminJobActionsProps) {
   const [pendingAction, setPendingAction] = useState<ActionState>(null);
   const [isPending, startTransition] = useTransition();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleAction = (action: Exclude<ActionState, null>) => {
     startTransition(async () => {
@@ -108,17 +111,25 @@ export function AdminJobActions({ jobId, status }: AdminJobActionsProps) {
               Edit
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link
-              href={`/admin/jobs/${jobId}/delete`}
-              className="cursor-pointer gap-2 text-destructive focus:text-destructive"
-            >
-              <Trash2 className="size-4" />
-              Delete
-            </Link>
+          <DropdownMenuItem
+            onSelect={() => {
+              setTimeout(() => setDeleteDialogOpen(true), 0);
+            }}
+            className="cursor-pointer gap-2 text-destructive focus:text-destructive"
+          >
+            <Trash2 className="size-4" />
+            Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <DeleteJobDialog
+        jobId={jobId}
+        jobTitle={jobTitle}
+        deleteAction={adminDeleteJobPost}
+        isAdmin
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+      />
     </div>
   );
 }

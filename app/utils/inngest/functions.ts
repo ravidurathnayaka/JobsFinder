@@ -2,7 +2,6 @@ import prisma from "../db";
 import { inngest } from "./client";
 import { sendEmail } from "../email";
 import { env } from "@/lib/env";
-import { logger } from "@/lib/logger";
 
 export const handleJobExpiration = inngest.createFunction(
   { id: "job-expiration" },
@@ -10,8 +9,20 @@ export const handleJobExpiration = inngest.createFunction(
   async ({ event, step }) => {
     const { jobId, expirationDays } = event.data;
 
-    if (expirationDays > 3) {
-      await step.sleep("wait-for-expiring-soon", `${expirationDays - 3}d`);
+    const isDev = process.env.NODE_ENV !== "production";
+    const enableInDev = process.env.ENABLE_JOB_EXPIRATION_IN_DEV === "true";
+
+    if (isDev && !enableInDev) {
+      return { jobId, message: "Skipped in development - jobs stay ACTIVE" };
+    }
+
+    // In dev with ENABLE_JOB_EXPIRATION_IN_DEV, use short duration so you can test (~2 min total)
+    const effectiveDays = isDev ? 0.0015 : expirationDays; // ~2 min in dev
+    const sleepForExpiringSoon = effectiveDays > 3 ? `${Math.max(0.001, effectiveDays - 3)}d` : null;
+    const sleepAfterExpiringSoon = effectiveDays > 3 ? (isDev ? "0.001d" : "3d") : null;
+
+    if (effectiveDays > 3 && sleepForExpiringSoon) {
+      await step.sleep("wait-for-expiring-soon", sleepForExpiringSoon);
 
       await step.run("send-expiring-soon-email", async () => {
         const job = await prisma.jobPost.findUnique({
@@ -42,9 +53,9 @@ export const handleJobExpiration = inngest.createFunction(
         }
       });
 
-      await step.sleep("wait-for-expiration", `3d`);
+      await step.sleep("wait-for-expiration", sleepAfterExpiringSoon!);
     } else {
-      await step.sleep("wait-for-expiration", `${expirationDays}d`);
+      await step.sleep("wait-for-expiration", `${effectiveDays}d`);
     }
 
     await step.run("update-job-status", async () => {

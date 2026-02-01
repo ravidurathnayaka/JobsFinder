@@ -62,3 +62,8 @@ export type Application = Prisma.ApplicationModel
  * 
  */
 export type SavedJobPost = Prisma.SavedJobPostModel
+/**
+ * Model JobView
+ * 
+ */
+export type JobView = Prisma.JobViewModel

@@ -44,7 +44,7 @@ export function JobFilters() {
 
   useEffect(() => {
     if (!isDraggingRef.current) {
-      setLocalSalaryRange(salaryRangeFromUrl);
+      queueMicrotask(() => setLocalSalaryRange(salaryRangeFromUrl));
     }
   }, [salaryRangeFromUrl]);
 

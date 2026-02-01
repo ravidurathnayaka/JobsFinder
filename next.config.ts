@@ -11,8 +11,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Enable standalone output for Docker
-  output: "standalone",
   // Experimental features for better performance
   experimental: {
     optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],

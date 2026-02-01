@@ -1,5 +1,5 @@
 /**
- * Next.js Middleware
+ * Next.js Proxy (formerly Middleware)
  *
  * Handles:
  * - Security headers
@@ -11,7 +11,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { logger } from "@/lib/logger";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const startTime = Date.now();
   const { pathname } = request.nextUrl;
 

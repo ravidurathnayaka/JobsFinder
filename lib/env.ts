@@ -54,6 +54,8 @@ const envSchema = z.object({
   // Inngest (optional for local dev)
   INNGEST_EVENT_KEY: z.string().optional(),
   INNGEST_SIGNING_KEY: z.string().optional(),
+  // When "true", schedule job expiration in dev (for testing; uses short sleep so jobs expire quickly)
+  ENABLE_JOB_EXPIRATION_IN_DEV: z.string().optional(),
 });
 
 type Env = z.infer<typeof envSchema>;

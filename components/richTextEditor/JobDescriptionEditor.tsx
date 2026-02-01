@@ -2,15 +2,22 @@
 
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { MenuBar } from "./MenuBar";
 import Link from "@tiptap/extension-link";
 import TextAlign from "@tiptap/extension-text-align";
 import Typography from "@tiptap/extension-typography";
-import { ControllerRenderProps } from "react-hook-form";
+/** Minimal field shape so any react-hook-form ControllerRenderProps is accepted */
+interface JobDescriptionEditorField {
+  value: string;
+  onChange: (value: string) => void;
+  onBlur: () => void;
+  ref: React.RefCallback<HTMLDivElement>;
+  name: string;
+}
 
 interface JobDescriptionEditorProps {
-  field: ControllerRenderProps;
+  field: JobDescriptionEditorField;
 }
 
 export default function JobDescriptionEditor({

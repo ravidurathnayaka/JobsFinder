@@ -12,10 +12,7 @@ import { Heart } from "lucide-react";
 import Link from "next/link";
 import { auth } from "@/app/utils/auth";
 import { isAdmin } from "@/app/utils/isAdmin";
-import {
-  GeneralSubmitButton,
-  SaveJobButton,
-} from "@/components/general/SubmitButtons";
+import { SaveJobButton } from "@/components/general/SubmitButtons";
 import { getFlagEmoji } from "@/app/utils/countriesList";
 import { saveJobPost, unsaveJobPost } from "@/app/actions";
 

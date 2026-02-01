@@ -47,11 +47,12 @@ export const ourFileRouter = {
         });
 
         return { userId: session.user.id };
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const err = error instanceof Error ? error : new Error(String(error));
         logger.error("Image upload middleware error", {
-          error: error?.message || error,
-          stack: error?.stack,
-          errorType: error?.constructor?.name,
+          error: err.message,
+          stack: err.stack,
+          errorType: err.constructor?.name,
         });
 
         if (error instanceof UploadThingError) {
@@ -59,7 +60,7 @@ export const ourFileRouter = {
         }
 
         throw new UploadThingError(
-          error?.message ||
+          err.message ||
             "Authentication failed. Please refresh the page and try again.",
         );
       }
@@ -68,7 +69,7 @@ export const ourFileRouter = {
       // This code RUNS ON YOUR SERVER after upload
       try {
         // Use file.url (newer UploadThing API) or fallback to file.ufsUrl
-        const fileUrl = file.url || (file as any).ufsUrl;
+        const fileUrl = file.url || (file as { ufsUrl?: string }).ufsUrl;
 
         logger.info("Image upload complete", {
           userId: metadata.userId,
@@ -123,11 +124,12 @@ export const ourFileRouter = {
         });
 
         return { userId: session.user.id };
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const err = error instanceof Error ? error : new Error(String(error));
         logger.error("Resume upload middleware error", {
-          error: error?.message || error,
-          stack: error?.stack,
-          errorType: error?.constructor?.name,
+          error: err.message,
+          stack: err.stack,
+          errorType: err.constructor?.name,
         });
 
         if (error instanceof UploadThingError) {
@@ -135,7 +137,7 @@ export const ourFileRouter = {
         }
 
         throw new UploadThingError(
-          error?.message ||
+          err.message ||
             "Authentication failed. Please refresh the page and try again.",
         );
       }
@@ -144,7 +146,7 @@ export const ourFileRouter = {
       // This code RUNS ON YOUR SERVER after upload
       try {
         // Use file.url (newer UploadThing API) or fallback to file.ufsUrl
-        const fileUrl = file.url || (file as any).ufsUrl;
+        const fileUrl = file.url || (file as { ufsUrl?: string }).ufsUrl;
 
         logger.info("Resume upload complete", {
           userId: metadata.userId,

@@ -15,12 +15,12 @@ import prisma from "./utils/db";
 import { stripe } from "./utils/stripe";
 import { jobListingDurationPricing } from "./utils/pricingTiers";
 import { inngest } from "./utils/inngest/client";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { isAdmin } from "./utils/isAdmin";
 import { JobPostStatus } from "@/lib/generated/prisma/client";
 import { sendEmail } from "./utils/email";
 import { logger } from "@/lib/logger";
-import { ValidationError, NotFoundError, AuthorizationError } from "@/lib/errors";
+import { ValidationError, AuthorizationError } from "@/lib/errors";
 import { env } from "@/lib/env";
 import { SAMPLE_JOBS } from "./data/sampleJobs";
 
@@ -391,6 +391,7 @@ export async function adminApproveJob(jobId: string) {
     select: {
       id: true,
       jobTitle: true,
+      listingDuration: true,
       company: {
         select: {
           user: {
@@ -413,7 +414,20 @@ export async function adminApproveJob(jobId: string) {
     });
   }
 
+  // Always send job/created so it appears in Inngest dev UI; expiration logic is gated inside the Inngest function (dev vs prod).
+  if (job.listingDuration) {
+    await inngest.send({
+      name: "job/created",
+      data: {
+        jobId: job.id,
+        expirationDays: job.listingDuration,
+      },
+    });
+  }
+
   revalidatePath("/admin/jobs");
+  revalidatePath("/", "page");
+  revalidateTag("jobs", "max");
 }
 
 export async function adminRejectJob(jobId: string) {

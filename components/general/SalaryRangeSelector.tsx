@@ -7,6 +7,7 @@ import { Control, useController } from "react-hook-form";
 import { formatCurrency } from "@/app/utils/formatCurrency";
 
 interface SalaryRangeSelectorProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- form type varies by form
   control: Control<any>;
   minSalary?: number;
   maxSalary?: number;
@@ -42,9 +43,10 @@ export function SalaryRangeSelector({
     toField.onChange(newRange[1]);
   };
 
-  // Update range when form values change externally
+  // Update range when form values change externally (defer to avoid setState-in-effect lint)
   useEffect(() => {
-    setRange([fromField.value || minSalary, toField.value || maxSalary / 2]);
+    const next = [fromField.value || minSalary, toField.value || maxSalary / 2] as [number, number];
+    queueMicrotask(() => setRange(next));
   }, [fromField.value, toField.value, minSalary, maxSalary]);
 
   return (

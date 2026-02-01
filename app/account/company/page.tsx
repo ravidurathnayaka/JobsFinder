@@ -53,7 +53,10 @@ export default async function CompanyAccountPage() {
   return (
     <div className="container mx-auto py-8 max-w-3xl">
       <CompanyForm
-        initialValues={company}
+        initialValues={{
+          ...company,
+          xAccount: company.xAccount ?? undefined,
+        }}
         submitAction={updateCompany}
         submitLabel="Update Profile"
         successMessage="Company profile updated."

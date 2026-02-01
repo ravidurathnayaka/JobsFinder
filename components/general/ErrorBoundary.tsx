@@ -25,7 +25,9 @@ export class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  // React lifecycle: params required by interface but not used yet (e.g. for Sentry)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- required by ErrorBoundary API
+  componentDidCatch(_error: Error, _errorInfo: ErrorInfo) {
     // In production, you would send this to an error tracking service
     // Example: Sentry.captureException(error, { contexts: { react: errorInfo } });
     // For now, errors are logged on the server side via API routes

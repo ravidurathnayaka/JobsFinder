@@ -10,8 +10,8 @@ import { JobPostStatus } from "@/lib/generated/prisma/client";
 const MAX_PAGE_SIZE = 50;
 const DEFAULT_PAGE_SIZE = 5;
 
-// Cache job list results so revisiting the same page/filters doesn't hit the DB every time
-const CACHE_REVALIDATE_SECONDS = 60;
+// Cache job list; revalidate when jobs go live via revalidateTag("jobs") (1s so list updates quickly)
+const CACHE_REVALIDATE_SECONDS = 1;
 
 async function getJobsUncached(
   page: number,
@@ -119,7 +119,7 @@ function getJobs(
         maxSalary
       ),
     [key],
-    { revalidate: CACHE_REVALIDATE_SECONDS }
+    { revalidate: CACHE_REVALIDATE_SECONDS, tags: ["jobs"] }
   )();
 }
 
@@ -167,7 +167,7 @@ export default async function JobListings({
     <>
       {jobs.length > 0 ? (
         <div className="flex flex-col gap-6">
-          {jobs.map((job, index) => (
+          {jobs.map((job) => (
             <JobCard
               job={job}
               key={job.id}

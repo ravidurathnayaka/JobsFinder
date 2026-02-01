@@ -4,6 +4,7 @@ import { isAdmin } from "@/app/utils/isAdmin";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ApplyJobForm } from "@/components/forms/ApplyJobForm";
+import { z } from "zod";
 import { applicationSchema } from "@/app/utils/zodSchemas";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -85,7 +86,7 @@ export default async function ApplyJobPage({ params }: { params: Params }) {
     },
   });
 
-  const defaultValues: typeof applicationSchema._type = {
+  const defaultValues: z.infer<typeof applicationSchema> = {
     name: jobSeeker?.name || user.name || "",
     email: user.email || "",
     resume: jobSeeker?.resume || "",

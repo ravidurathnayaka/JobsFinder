@@ -191,7 +191,7 @@ export default async function AdminJobsPage({ searchParams }: SearchParamsProps)
                         })}
                       </TableCell>
                       <TableCell className="py-4 text-right pr-6">
-                        <AdminJobActions jobId={job.id} status={job.status} />
+                        <AdminJobActions jobId={job.id} jobTitle={job.jobTitle} status={job.status} />
                       </TableCell>
                     </TableRow>
                   ))}

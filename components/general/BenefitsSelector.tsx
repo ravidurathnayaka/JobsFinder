@@ -1,11 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { benefits } from "@/app/utils/listofBenefits";
 import { Badge } from "@/components/ui/badge";
+/** Minimal field shape so any react-hook-form ControllerRenderProps is accepted */
+interface BenefitsSelectorField {
+  value: string[];
+  onChange: (value: string[]) => void;
+  onBlur: () => void;
+  name: string;
+}
 
 interface BenefitsSelectorProps {
-  field: any; // Replace with proper type if needed
+  field: BenefitsSelectorField;
 }
 
 export default function BenefitsSelector({ field }: BenefitsSelectorProps) {

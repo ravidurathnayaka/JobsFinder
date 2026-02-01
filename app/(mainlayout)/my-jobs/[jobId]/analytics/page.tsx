@@ -97,8 +97,10 @@ type Params = Promise<{ jobId: string }>;
 export default async function JobAnalyticsPage({ params }: { params: Params }) {
   const user = await requireUser();
   const { jobId } = await params;
+  const userId = user.id;
+  if (!userId) return notFound();
 
-  const analytics = await getJobAnalytics(jobId, user.id);
+  const analytics = await getJobAnalytics(jobId, userId);
 
   if (!analytics) {
     return notFound();

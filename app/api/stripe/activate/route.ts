@@ -1,3 +1,4 @@
+import { revalidatePath, revalidateTag } from "next/cache";
 import prisma from "@/app/utils/db";
 import { stripe } from "@/app/utils/stripe";
 import { NextRequest, NextResponse } from "next/server";
@@ -70,6 +71,7 @@ export async function POST(req: NextRequest) {
         });
       }
 
+      // Always send job/created so it appears in Inngest dev UI; expiration logic is gated inside the Inngest function (dev vs prod).
       if (job?.listingDuration) {
         await inngest.send({
           name: "job/created",
@@ -79,6 +81,11 @@ export async function POST(req: NextRequest) {
           },
         });
       }
+    }
+
+    if (result.count > 0) {
+      revalidateTag("jobs", "max");
+      revalidatePath("/", "page");
     }
 
     logger.info("Job activated from Stripe checkout", {

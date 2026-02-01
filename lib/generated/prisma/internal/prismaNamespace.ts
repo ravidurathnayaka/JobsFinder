@@ -392,7 +392,8 @@ export const ModelName = {
   JobSeeker: 'JobSeeker',
   JobPost: 'JobPost',
   Application: 'Application',
-  SavedJobPost: 'SavedJobPost'
+  SavedJobPost: 'SavedJobPost',
+  JobView: 'JobView'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -408,7 +409,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "session" | "verificationToken" | "user" | "company" | "jobSeeker" | "jobPost" | "application" | "savedJobPost"
+    modelProps: "account" | "session" | "verificationToken" | "user" | "company" | "jobSeeker" | "jobPost" | "application" | "savedJobPost" | "jobView"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1078,6 +1079,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    JobView: {
+      payload: Prisma.$JobViewPayload<ExtArgs>
+      fields: Prisma.JobViewFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.JobViewFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobViewPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.JobViewFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobViewPayload>
+        }
+        findFirst: {
+          args: Prisma.JobViewFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobViewPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.JobViewFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobViewPayload>
+        }
+        findMany: {
+          args: Prisma.JobViewFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobViewPayload>[]
+        }
+        create: {
+          args: Prisma.JobViewCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobViewPayload>
+        }
+        createMany: {
+          args: Prisma.JobViewCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.JobViewCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobViewPayload>[]
+        }
+        delete: {
+          args: Prisma.JobViewDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobViewPayload>
+        }
+        update: {
+          args: Prisma.JobViewUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobViewPayload>
+        }
+        deleteMany: {
+          args: Prisma.JobViewDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.JobViewUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.JobViewUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobViewPayload>[]
+        }
+        upsert: {
+          args: Prisma.JobViewUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobViewPayload>
+        }
+        aggregate: {
+          args: Prisma.JobViewAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateJobView>
+        }
+        groupBy: {
+          args: Prisma.JobViewGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.JobViewGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.JobViewCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.JobViewCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1244,6 +1319,18 @@ export const SavedJobPostScalarFieldEnum = {
 } as const
 
 export type SavedJobPostScalarFieldEnum = (typeof SavedJobPostScalarFieldEnum)[keyof typeof SavedJobPostScalarFieldEnum]
+
+
+export const JobViewScalarFieldEnum = {
+  id: 'id',
+  jobId: 'jobId',
+  userId: 'userId',
+  userAgent: 'userAgent',
+  ipAddress: 'ipAddress',
+  createdAt: 'createdAt'
+} as const
+
+export type JobViewScalarFieldEnum = (typeof JobViewScalarFieldEnum)[keyof typeof JobViewScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1470,6 +1557,7 @@ export type GlobalOmitConfig = {
   jobPost?: Prisma.JobPostOmit
   application?: Prisma.ApplicationOmit
   savedJobPost?: Prisma.SavedJobPostOmit
+  jobView?: Prisma.JobViewOmit
 }
 
 /* Types for Logging */

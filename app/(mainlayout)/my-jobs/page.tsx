@@ -16,25 +16,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Image from "next/image";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Briefcase, MoreHorizontal, PenBoxIcon, User2, XCircle } from "lucide-react";
-import Link from "next/link";
+import { User2 } from "lucide-react";
 
 import { EmptyState } from "@/components/general/EmptyState";
 import prisma from "@/app/utils/db";
 
 import { requireUser } from "@/app/utils/requireUser";
 import { isAdmin } from "@/app/utils/isAdmin";
-import { addSampleJobs } from "@/app/actions";
-import { CopyLinkMenuItem } from "@/components/general/CopyLink";
+import { addSampleJobs, deleteJobPost } from "@/app/actions";
+import { MyJobRowActions } from "@/components/general/MyJobRowActions";
 import { env } from "@/lib/env";
 import { redirect } from "next/navigation";
 
@@ -177,44 +168,12 @@ const MyJobs = async () => {
                           })}
                         </TableCell>
                         <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="size-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/my-jobs/${listing.id}/edit`}>
-                              <PenBoxIcon className="size-4" />
-                              Edit Job
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/my-jobs/${listing.id}/analytics`}>
-                              <Briefcase className="size-4" />
-                              Analytics
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/my-jobs/${listing.id}/applications`}>
-                              <Briefcase className="size-4" />
-                              Applications
-                            </Link>
-                          </DropdownMenuItem>
-                          <CopyLinkMenuItem
+                          <MyJobRowActions
+                            jobId={listing.id}
+                            jobTitle={listing.jobTitle}
                             jobUrl={`${env.NEXT_PUBLIC_URL}/job/${listing.id}`}
+                            deleteAction={deleteJobPost}
                           />
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem asChild>
-                            <Link href={`/my-jobs/${listing.id}/delete`}>
-                              <XCircle className="h-4 w-4" />
-                              Delete Job
-                            </Link>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}
