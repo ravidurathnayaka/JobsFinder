@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+# Bump package.json version from last commit message (Conventional Commits) and amend commit
+VERSION=$(node scripts/bump-version.mjs)
+if [ -n "$VERSION" ]; then
+  git add package.json
+  git commit --amend --no-edit --no-verify
+fi

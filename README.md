@@ -49,6 +49,17 @@ A job board app: browse jobs, post jobs (companies), apply (job seekers). Built 
 
 After deploy, configure Stripe webhook to point to `https://your-app.vercel.app/api/webhook/stripe` and Inngest to your app’s Inngest endpoint if you use job expiration.
 
+## Versioning
+
+The project uses [Conventional Commits](https://www.conventionalcommits.org/) and **automatic version bumps** on every commit (via a post-commit hook):
+
+- **feat:** → minor (e.g. 1.0.0 → 1.1.0)
+- **fix:**, **chore:**, **perf:**, **refactor:**, etc. → patch (e.g. 1.0.0 → 1.0.1)
+- **BREAKING CHANGE** or **feat!:** → major (e.g. 1.0.0 → 2.0.0)
+- **docs:** and **chore(release):** → no bump
+
+After each commit, `package.json` version is updated and the commit is amended to include it. Use conventional commit messages so the version stays in sync.
+
 ## Scripts
 
 - `pnpm dev` – start dev server (port 3000)
