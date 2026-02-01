@@ -32,9 +32,11 @@ import { EmptyState } from "@/components/general/EmptyState";
 import prisma from "@/app/utils/db";
 
 import { requireUser } from "@/app/utils/requireUser";
+import { isAdmin } from "@/app/utils/isAdmin";
 import { addSampleJobs } from "@/app/actions";
 import { CopyLinkMenuItem } from "@/components/general/CopyLink";
 import { env } from "@/lib/env";
+import { redirect } from "next/navigation";
 
 // Maximum jobs to fetch per user (prevent memory issues)
 const MAX_USER_JOBS = 1000;
@@ -74,6 +76,14 @@ async function getJobs(userId: string) {
 
 const MyJobs = async () => {
   const session = await requireUser();
+  const user = await prisma.user.findUnique({
+    where: { id: session.id as string },
+    select: { userType: true, email: true },
+  });
+  const admin = user?.email ? isAdmin(user.email) : false;
+  if (user?.userType === "JOB_SEEKER" && !admin) {
+    redirect("/");
+  }
   const data = await getJobs(session.id as string);
 
   return (

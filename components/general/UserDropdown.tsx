@@ -80,7 +80,7 @@ export function UserDropdown({
               </Link>
             </DropdownMenuItem>
           ) : null}
-          {userType === "COMPANY" ? (
+          {(userType === "COMPANY" || isAdmin) ? (
             <DropdownMenuItem asChild>
               <Link href="/account/company">
                 <Building2
@@ -89,11 +89,11 @@ export function UserDropdown({
                   className="opacity-60"
                   aria-hidden="true"
                 />
-                <span>Company Profile</span>
+                <span>Profile</span>
               </Link>
             </DropdownMenuItem>
           ) : null}
-          {userType === "JOB_SEEKER" ? (
+          {(userType === "JOB_SEEKER" || isAdmin) ? (
             <DropdownMenuItem asChild>
               <Link href="/account/jobseeker">
                 <UserRound
@@ -102,7 +102,7 @@ export function UserDropdown({
                   className="opacity-60"
                   aria-hidden="true"
                 />
-                <span>Job Seeker Profile</span>
+                <span>Profile</span>
               </Link>
             </DropdownMenuItem>
           ) : null}
@@ -114,31 +114,35 @@ export function UserDropdown({
                 className="opacity-60"
                 aria-hidden="true"
               />
-              <span>Saved Jobs</span>
+              <span>Saved</span>
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/my-jobs">
-              <Layers2
-                size={16}
-                strokeWidth={2}
-                className="opacity-60"
-                aria-hidden="true"
-              />
-              <span>My Job Listings</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/account/billing">
-              <CreditCard
-                size={16}
-                strokeWidth={2}
-                className="opacity-60"
-                aria-hidden="true"
-              />
-              <span>Billing & Invoices</span>
-            </Link>
-          </DropdownMenuItem>
+          {(userType === "COMPANY" || isAdmin) ? (
+            <DropdownMenuItem asChild>
+              <Link href="/my-jobs">
+                <Layers2
+                  size={16}
+                  strokeWidth={2}
+                  className="opacity-60"
+                  aria-hidden="true"
+                />
+                <span>My Jobs</span>
+              </Link>
+            </DropdownMenuItem>
+          ) : null}
+          {(userType === "COMPANY" || isAdmin) ? (
+            <DropdownMenuItem asChild>
+              <Link href="/account/billing">
+                <CreditCard
+                  size={16}
+                  strokeWidth={2}
+                  className="opacity-60"
+                  aria-hidden="true"
+                />
+                <span>Billing</span>
+              </Link>
+            </DropdownMenuItem>
+          ) : null}
         </DropdownMenuGroup>
 
         <DropdownMenuSeparator />

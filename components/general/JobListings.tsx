@@ -1,3 +1,5 @@
+import { unstable_cache } from "next/cache";
+import { auth } from "@/app/utils/auth";
 import { PaginationComponent } from "./PaginationComponent";
 import { JobCard } from "./JobCard";
 import prisma from "@/app/utils/db";
@@ -8,14 +10,17 @@ import { JobPostStatus } from "@/lib/generated/prisma/client";
 const MAX_PAGE_SIZE = 50;
 const DEFAULT_PAGE_SIZE = 5;
 
-async function getJobs(
-  page: number = 1,
-  pageSize: number = DEFAULT_PAGE_SIZE,
-  jobTypes: string[] = [],
-  location: string = "",
-  search: string = "",
-  minSalary: string = "",
-  maxSalary: string = ""
+// Cache job list results so revisiting the same page/filters doesn't hit the DB every time
+const CACHE_REVALIDATE_SECONDS = 60;
+
+async function getJobsUncached(
+  page: number,
+  pageSize: number,
+  jobTypes: string[],
+  location: string,
+  search: string,
+  minSalary: string,
+  maxSalary: string
 ) {
   const safePageSize = Math.min(pageSize, MAX_PAGE_SIZE);
   const safePage = Math.max(1, page);
@@ -41,7 +46,6 @@ async function getJobs(
         mode: "insensitive" as const,
       },
     }),
-    // Only filter by type when user selected some but not all (empty = show all; all 4 = show all)
     ...(cleanJobTypes.length > 0 && cleanJobTypes.length < 4 && {
       employmentType: {
         in: cleanJobTypes,
@@ -93,6 +97,32 @@ async function getJobs(
   };
 }
 
+function getJobs(
+  page: number = 1,
+  pageSize: number = DEFAULT_PAGE_SIZE,
+  jobTypes: string[] = [],
+  location: string = "",
+  search: string = "",
+  minSalary: string = "",
+  maxSalary: string = ""
+) {
+  const key = `jobs:${page}:${pageSize}:${jobTypes.join(",")}:${location}:${search}:${minSalary}:${maxSalary}`;
+  return unstable_cache(
+    () =>
+      getJobsUncached(
+        page,
+        pageSize,
+        jobTypes,
+        location,
+        search,
+        minSalary,
+        maxSalary
+      ),
+    [key],
+    { revalidate: CACHE_REVALIDATE_SECONDS }
+  )();
+}
+
 interface JobListingsProps {
   currentPage: number;
   search: string;
@@ -110,26 +140,39 @@ export default async function JobListings({
   minSalary = "",
   maxSalary = "",
 }: JobListingsProps) {
-  const {
-    jobs,
-    totalPages,
-    currentPage: page,
-  } = await getJobs(
-    currentPage,
-    DEFAULT_PAGE_SIZE,
-    jobTypes,
-    location,
-    search,
-    minSalary,
-    maxSalary
-  );
+  const [session, { jobs, totalPages, currentPage: page }] = await Promise.all([
+    auth(),
+    getJobs(
+      currentPage,
+      DEFAULT_PAGE_SIZE,
+      jobTypes,
+      location,
+      search,
+      minSalary,
+      maxSalary
+    ),
+  ]);
+
+  const appliedJobIds =
+    session?.user?.id != null
+      ? (
+          await prisma.application.findMany({
+            where: { userId: session.user.id as string },
+            select: { jobId: true },
+          })
+        ).map((a) => a.jobId)
+      : [];
 
   return (
     <>
       {jobs.length > 0 ? (
         <div className="flex flex-col gap-6">
           {jobs.map((job, index) => (
-            <JobCard job={job} key={index} />
+            <JobCard
+              job={job}
+              key={job.id}
+              applied={appliedJobIds.includes(job.id)}
+            />
           ))}
         </div>
       ) : (

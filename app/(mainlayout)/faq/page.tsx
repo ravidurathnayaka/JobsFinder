@@ -31,7 +31,7 @@ const faqs = [
   },
   {
     q: "How do I save jobs to apply later?",
-    a: "Sign in and open any job page. Click Save Job. Your saved jobs appear under Saved Jobs (or Favorites) in the menu.",
+    a: "Sign in and open any job page. Click Save Job. Your saved jobs appear under Saved (or Favorites) in the menu.",
   },
   {
     q: "Who can see my application?",

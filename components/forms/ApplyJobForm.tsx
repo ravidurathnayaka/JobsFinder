@@ -40,7 +40,9 @@ export function ApplyJobForm({ jobId, defaultValues }: ApplyJobFormProps) {
       toast.success("Application submitted.");
     } catch (error) {
       if (error instanceof Error && error.message !== "NEXT_REDIRECT") {
-        toast.error("Failed to submit application.");
+        const message =
+          error.message?.includes("already submitted") ? error.message : "Failed to submit application.";
+        toast.error(message);
       }
     } finally {
       setPending(false);

@@ -1,7 +1,9 @@
 import { auth } from "@/app/utils/auth";
+import { isAdmin } from "@/app/utils/isAdmin";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
 import { logger } from "@/lib/logger";
+import prisma from "@/app/utils/db";
 
 const f = createUploadthing();
 // FileRouter for your app, can contain multiple FileRoutes
@@ -13,13 +15,11 @@ export const ourFileRouter = {
       maxFileCount: 1,
     },
   })
-    // Set permissions and file types for this FileRoute
+    // Set permissions and file types for this FileRoute (company logo - company only)
     .middleware(async () => {
       try {
-        // Use auth() directly instead of requireUser() to avoid redirects
         const session = await auth();
 
-        // If you throw, the user will not be able to upload
         if (!session?.user?.id) {
           logger.error("Image upload attempted without user session", {
             hasSession: !!session,
@@ -31,11 +31,21 @@ export const ourFileRouter = {
           );
         }
 
+        const user = await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { userType: true, email: true },
+        });
+        const admin = user?.email ? isAdmin(user.email) : false;
+        if (user?.userType === "JOB_SEEKER" && !admin) {
+          throw new UploadThingError(
+            "Image upload (e.g. company logo) is only available for company accounts.",
+          );
+        }
+
         logger.debug("Image upload middleware passed", {
           userId: session.user.id,
         });
 
-        // Whatever is returned here is accessible in onUploadComplete as `metadata`
         return { userId: session.user.id };
       } catch (error: any) {
         logger.error("Image upload middleware error", {
@@ -81,13 +91,11 @@ export const ourFileRouter = {
       maxFileCount: 1,
     },
   })
-    // Set permissions and file types for this FileRoute
+    // Set permissions and file types for this FileRoute (resume - job seeker only)
     .middleware(async () => {
       try {
-        // Use auth() directly instead of requireUser() to avoid redirects
         const session = await auth();
 
-        // If you throw, the user will not be able to upload
         if (!session?.user?.id) {
           logger.error("Resume upload attempted without user session", {
             hasSession: !!session,
@@ -99,11 +107,21 @@ export const ourFileRouter = {
           );
         }
 
+        const user = await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { userType: true, email: true },
+        });
+        const admin = user?.email ? isAdmin(user.email) : false;
+        if (user?.userType === "COMPANY" && !admin) {
+          throw new UploadThingError(
+            "Resume upload is only available for job seeker accounts.",
+          );
+        }
+
         logger.debug("Resume upload middleware passed", {
           userId: session.user.id,
         });
 
-        // Whatever is returned here is accessible in onUploadComplete as `metadata`
         return { userId: session.user.id };
       } catch (error: any) {
         logger.error("Resume upload middleware error", {

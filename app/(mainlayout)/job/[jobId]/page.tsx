@@ -202,6 +202,16 @@ const JobIdPage = async ({ params }: { params: Params }) => {
     session?.user?.id,
     allowAllStatuses
   );
+  const userDataForApply = session?.user?.id
+    ? await prisma.user.findUnique({
+        where: { id: session.user.id as string },
+        select: { userType: true, email: true },
+      })
+    : null;
+  const showApplyCard =
+    !session?.user ||
+    userDataForApply?.userType === "JOB_SEEKER" ||
+    (userDataForApply?.email ? isAdmin(userDataForApply.email) : false);
   const locationFlag = getFlagEmoji(jobData.location);
 
   const jobUrl = `${env.NEXT_PUBLIC_URL}/job/${jobId}`;
@@ -343,7 +353,8 @@ const JobIdPage = async ({ params }: { params: Params }) => {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Apply Now Card */}
+          {/* Apply Now Card - only for job seekers or guests (company users manage jobs, not apply) */}
+          {showApplyCard && (
           <Card className="p-6">
             <div className="space-y-4">
               <div>
@@ -360,6 +371,7 @@ const JobIdPage = async ({ params }: { params: Params }) => {
               </Button>
             </div>
           </Card>
+          )}
 
           {/* Job Details Card */}
           <Card className="p-6">

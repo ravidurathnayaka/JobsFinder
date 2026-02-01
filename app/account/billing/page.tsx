@@ -44,7 +44,7 @@ export default function BillingPage() {
   return (
     <div className="container mx-auto py-8 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Billing & Invoices</h1>
+        <h1 className="text-3xl font-bold">Billing</h1>
         <p className="text-muted-foreground">
           Manage your billing information and view invoices
         </p>

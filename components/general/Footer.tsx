@@ -44,7 +44,7 @@ const Footer = () => {
                   href="/favorites"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Saved Jobs
+                  Saved
                 </Link>
               </li>
             </ul>

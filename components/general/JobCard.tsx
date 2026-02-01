@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { Card, CardHeader } from "../ui/card";
-import { MapPin, User2 } from "lucide-react";
+import { Button } from "../ui/button";
+import { MapPin, User2, Send, CheckCircle } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { formatCurrency } from "@/app/utils/formatCurrency";
 import Image from "next/image";
@@ -24,13 +25,14 @@ interface iAppProps {
       location: string;
     };
   };
+  applied?: boolean;
 }
 
-export function JobCard({ job }: iAppProps) {
+export function JobCard({ job, applied = false }: iAppProps) {
   return (
-    <Link href={`/job/${job.id}`}>
-      <Card className="hover:shadow-lg transition-all duration-300 hover:border-primary relative">
-        <CardHeader>
+    <Card className="hover:shadow-lg transition-all duration-300 hover:border-primary relative">
+      <CardHeader className="space-y-4">
+        <Link href={`/job/${job.id}`} className="block focus:outline-none">
           <div className="flex flex-col md:flex-row gap-4">
             {job.company.logo ? (
               <Image
@@ -46,7 +48,9 @@ export function JobCard({ job }: iAppProps) {
               </div>
             )}
             <div className="flex flex-col grow gap-2">
-              <h1 className="text-xl md:text-2xl font-bold">{job.jobTitle}</h1>
+              <h1 className="text-xl md:text-2xl font-bold hover:underline">
+                {job.jobTitle}
+              </h1>
               <div className="flex flex-wrap items-center gap-2">
                 <p className="text-sm text-muted-foreground">
                   {job.company.name}
@@ -88,8 +92,27 @@ export function JobCard({ job }: iAppProps) {
               {job.company.about}
             </p>
           </div>
-        </CardHeader>
-      </Card>
-    </Link>
+        </Link>
+
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
+          {applied ? (
+            <Button variant="secondary" size="sm" className="gap-1.5" disabled>
+              <CheckCircle className="size-4" />
+              Applied
+            </Button>
+          ) : (
+            <Button asChild variant="default" size="sm" className="gap-1.5">
+              <Link href={`/job/${job.id}/apply`}>
+                <Send className="size-4" />
+                Apply
+              </Link>
+            </Button>
+          )}
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/job/${job.id}`}>View details</Link>
+          </Button>
+        </div>
+      </CardHeader>
+    </Card>
   );
 }

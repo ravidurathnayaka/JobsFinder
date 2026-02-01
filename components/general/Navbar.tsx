@@ -13,9 +13,10 @@ const Navbar = async () => {
   const userData = session?.user?.id
     ? await prisma.user.findUnique({
         where: { id: session.user.id as string },
-        select: { userType: true },
+        select: { userType: true, email: true },
       })
     : null;
+  const admin = session?.user?.email ? isAdmin(session.user.email) : false;
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-background/80 dark:bg-background/90 backdrop-blur-xl border-b border-border/40 shadow-sm">
@@ -30,9 +31,11 @@ const Navbar = async () => {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-4">
           <ThemeToggle />
-          <Link href="/post-job" className={buttonVariants({ size: "lg" })}>
-            Post Job
-          </Link>
+          {(!session?.user || userData?.userType === "COMPANY" || admin) && (
+            <Link href="/post-job" className={buttonVariants({ size: "lg" })}>
+              Post Job
+            </Link>
+          )}
           {session?.user ? (
             <UserDropdown
               email={session.user.email as string}

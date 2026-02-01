@@ -1,4 +1,5 @@
 import { requireUser } from "@/app/utils/requireUser";
+import { isAdmin } from "@/app/utils/isAdmin";
 import { stripe } from "@/app/utils/stripe";
 import prisma from "@/app/utils/db";
 import { NextResponse } from "next/server";
@@ -11,13 +12,21 @@ export async function POST() {
 
   const user = await prisma.user.findUnique({
     where: { id: sessionUser.id as string },
-    select: { stripeCustomerId: true },
+    select: { stripeCustomerId: true, userType: true, email: true },
   });
 
   if (!user) {
     return NextResponse.json(
       { error: { message: "User not found" } },
       { status: 404 }
+    );
+  }
+
+  const admin = user.email ? isAdmin(user.email) : false;
+  if (user.userType === "JOB_SEEKER" && !admin) {
+    return NextResponse.json(
+      { error: { message: "Billing is only available for company accounts." } },
+      { status: 403 }
     );
   }
 

@@ -38,7 +38,7 @@ export function HeroSearch() {
           Find your dream job or let companies find you
         </h1>
         <p className="text-muted-foreground text-sm mb-4">
-          Job title or keywords · Anywhere
+          Search by job title or keywords, anywhere in the world.
         </p>
         <form
           onSubmit={handleSubmit}

@@ -24,6 +24,30 @@ import { ValidationError, NotFoundError, AuthorizationError } from "@/lib/errors
 import { env } from "@/lib/env";
 import { SAMPLE_JOBS } from "./data/sampleJobs";
 
+/** Reject if user is a job seeker (company-only actions). Admins are allowed. */
+async function assertCompanyUser(userId: string) {
+  const u = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { userType: true, email: true },
+  });
+  if (u?.email && isAdmin(u.email)) return;
+  if (u?.userType === "JOB_SEEKER") {
+    throw new AuthorizationError("This action is only available for company accounts.");
+  }
+}
+
+/** Reject if user is a company (job-seeker-only actions). Admins are allowed. */
+async function assertJobSeekerUser(userId: string) {
+  const u = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { userType: true, email: true },
+  });
+  if (u?.email && isAdmin(u.email)) return;
+  if (u?.userType === "COMPANY") {
+    throw new AuthorizationError("This action is only available for job seeker accounts.");
+  }
+}
+
 const aj = arcjet
   .withRule(
     shield({
@@ -117,8 +141,35 @@ export async function createJobSeeker(data: z.infer<typeof jobSeekerSchema>) {
   return redirect("/");
 }
 
+/** Create a company profile for current user without changing userType (admin-only, e.g. for JOB_SEEKER admins who want to post jobs). */
+export async function createCompanyProfile(data: z.infer<typeof companySchema>) {
+  const user = await requireUser();
+  if (!isAdmin(user.email)) {
+    throw new AuthorizationError("Only admins can create a company profile without changing account type.");
+  }
+
+  const validatedData = companySchema.parse(data);
+
+  await prisma.company.create({
+    data: {
+      userId: user.id as string,
+      name: validatedData.name,
+      location: validatedData.location,
+      about: validatedData.about,
+      logo: validatedData.logo,
+      website: validatedData.website,
+      xAccount: validatedData.xAccount ?? null,
+    },
+  });
+
+  revalidatePath("/account/company");
+  revalidatePath("/post-job");
+  return redirect("/post-job");
+}
+
 export async function createJob(data: z.infer<typeof jobSchema>) {
   const user = await requireUser();
+  await assertCompanyUser(user.id as string);
 
   const req = await request();
 
@@ -227,6 +278,7 @@ export async function updateJobPost(
   jobId: string
 ) {
   const user = await requireUser();
+  await assertCompanyUser(user.id as string);
 
   const validatedData = jobSchema.parse(data);
 
@@ -254,6 +306,7 @@ export async function updateJobPost(
 
 export async function deleteJobPost(jobId: string) {
   const user = await requireUser();
+  await assertCompanyUser(user.id as string);
 
   await prisma.jobPost.delete({
     where: {
@@ -269,6 +322,7 @@ export async function deleteJobPost(jobId: string) {
 
 export async function addSampleJobs() {
   const user = await requireUser();
+  await assertCompanyUser(user.id as string);
 
   const company = await prisma.company.findUnique({
     where: { userId: user.id },
@@ -453,6 +507,7 @@ export async function adminDeleteJobPost(jobId: string) {
 
 export async function updateCompany(data: z.infer<typeof companySchema>) {
   const user = await requireUser();
+  await assertCompanyUser(user.id as string);
   const validatedData = companySchema.parse(data);
 
   await prisma.company.update({
@@ -469,6 +524,7 @@ export async function updateCompany(data: z.infer<typeof companySchema>) {
 
 export async function updateJobSeeker(data: z.infer<typeof jobSeekerSchema>) {
   const user = await requireUser();
+  await assertJobSeekerUser(user.id as string);
   const validatedData = jobSeekerSchema.parse(data);
 
   await prisma.jobSeeker.update({
@@ -492,6 +548,15 @@ export async function applyToJob(
   if (!userId) {
     redirect("/login");
   }
+  await assertJobSeekerUser(userId as string);
+
+  const existing = await prisma.application.findUnique({
+    where: { userId_jobId: { userId, jobId } },
+  });
+  if (existing) {
+    throw new ValidationError("You have already submitted an application for this job.");
+  }
+
   const validatedData = applicationSchema.parse(data);
   await prisma.application.create({
     data: {
@@ -504,4 +569,5 @@ export async function applyToJob(
     },
   });
   revalidatePath(`/job/${jobId}`);
+  redirect("/");
 }

@@ -88,16 +88,18 @@ export function MobileMenu({ session, isAdmin, userType }: MobileMenuProps) {
               </div>
 
               <div className="flex flex-col gap-4">
-                <Link
-                  href="/post-job"
-                  className={buttonVariants({
-                    variant: "default",
-                    className: "w-full",
-                  })}
-                  onClick={() => setIsOpen(false)}
-                >
-                  Post Job
-                </Link>
+                {(!session?.user || userType === "COMPANY" || isAdmin) && (
+                  <Link
+                    href="/post-job"
+                    className={buttonVariants({
+                      variant: "default",
+                      className: "w-full",
+                    })}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Post Job
+                  </Link>
+                )}
 
                 {session?.user ? (
                   <>
@@ -149,38 +151,42 @@ export function MobileMenu({ session, isAdmin, userType }: MobileMenuProps) {
                         className="text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
                         onClick={() => setIsOpen(false)}
                       >
-                        Saved Jobs
+                        Saved
                       </Link>
+                      {(userType === "COMPANY" || isAdmin) && (
                       <Link
                         href="/my-jobs"
                         className="text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
                         onClick={() => setIsOpen(false)}
                       >
-                        My Job Listings
+                        My Jobs
                       </Link>
+                      )}
+                      {(userType === "COMPANY" || isAdmin) && (
                       <Link
                         href="/account/billing"
                         className="text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
                         onClick={() => setIsOpen(false)}
                       >
-                        Billing & Invoices
+                        Billing
                       </Link>
-                      {userType === "COMPANY" && (
+                      )}
+                      {(userType === "COMPANY" || isAdmin) && (
                         <Link
                           href="/account/company"
                           className="text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
                           onClick={() => setIsOpen(false)}
                         >
-                          Company Profile
+                          Profile
                         </Link>
                       )}
-                      {userType === "JOB_SEEKER" && (
+                      {(userType === "JOB_SEEKER" || isAdmin) && (
                         <Link
                           href="/account/jobseeker"
                           className="text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
                           onClick={() => setIsOpen(false)}
                         >
-                          Job Seeker Profile
+                          Profile
                         </Link>
                       )}
                       {isAdmin && (
