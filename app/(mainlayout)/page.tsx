@@ -32,7 +32,7 @@ export default async function Home({ searchParams }: SearchParamsProps) {
     <>
       <HeroSearch />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 lg:sticky lg:top-24 h-fit">
           <JobFilters />
         </div>
         <div className="lg:col-span-2 flex flex-col gap-6">
